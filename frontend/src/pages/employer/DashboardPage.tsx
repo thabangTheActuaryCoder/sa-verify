@@ -31,14 +31,12 @@ export default function EmployerDashboard() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  // Form state
   const [candidateId, setCandidateId] = useState('');
   const [reason, setReason] = useState('');
   const [queryItems, setQueryItems] = useState<QueryItem[]>([
     { query_type: 'id_verification', query_params: {} },
   ]);
 
-  // Filters
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState('');
 
@@ -96,13 +94,22 @@ export default function EmployerDashboard() {
         subtitle="Submit and manage verification requests"
       />
 
-      <Card shadow="sm" withBorder mb="lg" p="md">
-        <Text fw={600} mb="sm">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="lg"
+        p="md"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
+        <Text fw={600} mb="sm" c="#1C1C2E">
           New Verification Request
         </Text>
         <Stack gap="sm">
           {formError && (
-            <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+            <Alert icon={<IconAlertCircle size={16} />} color="saTerracotta" variant="light">
               {formError}
             </Alert>
           )}
@@ -134,6 +141,8 @@ export default function EmployerDashboard() {
               leftSection={<IconSend size={16} />}
               onClick={handleSubmit}
               loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
             >
               Submit Request
             </Button>
@@ -170,36 +179,38 @@ export default function EmployerDashboard() {
       ) : requests.length === 0 ? (
         <EmptyState message="No verification requests found" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Candidate ID</Table.Th>
-              <Table.Th>Items</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Reason</Table.Th>
-              <Table.Th>Date</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {requests.map((req) => (
-              <Table.Tr
-                key={req.id}
-                style={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/employer/request/${req.id}`)}
-              >
-                <Table.Td>#{req.id}</Table.Td>
-                <Table.Td ff="monospace">{maskIdNumber(req.candidate_id_number)}</Table.Td>
-                <Table.Td>{req.items.length}</Table.Td>
-                <Table.Td>
-                  <StatusBadge status={req.status} />
-                </Table.Td>
-                <Table.Td>{req.reason ?? '-'}</Table.Td>
-                <Table.Td>{formatDateTime(req.created_at)}</Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Candidate ID</Table.Th>
+                <Table.Th>Items</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>Reason</Table.Th>
+                <Table.Th>Date</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {requests.map((req) => (
+                <Table.Tr
+                  key={req.id}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/employer/request/${req.id}`)}
+                >
+                  <Table.Td>#{req.id}</Table.Td>
+                  <Table.Td ff="monospace">{maskIdNumber(req.candidate_id_number)}</Table.Td>
+                  <Table.Td>{req.items.length}</Table.Td>
+                  <Table.Td>
+                    <StatusBadge status={req.status} />
+                  </Table.Td>
+                  <Table.Td>{req.reason ?? '-'}</Table.Td>
+                  <Table.Td>{formatDateTime(req.created_at)}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
     </>
   );

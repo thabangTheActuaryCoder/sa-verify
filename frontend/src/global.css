@@ -1,0 +1,111 @@
+/* SA Verify - Tsonga-Inspired Global Styles */
+
+:root {
+  --tsonga-green: #0D8044;
+  --tsonga-gold: #F5A623;
+  --tsonga-terracotta: #D4522A;
+  --tsonga-charcoal: #1C1C2E;
+  --tsonga-cream: #FFF9F2;
+  --tsonga-white: #FFFFFF;
+  --tsonga-muted-green: #E8F5E9;
+  --tsonga-gold-light: #FFF3D6;
+}
+
+/* Page background */
+body {
+  background: linear-gradient(135deg, var(--tsonga-cream) 0%, var(--tsonga-white) 100%);
+  min-height: 100vh;
+}
+
+/* Gradient utilities */
+.gradient-header {
+  background: linear-gradient(135deg, var(--tsonga-green) 0%, var(--tsonga-charcoal) 100%);
+}
+
+.gradient-card-green {
+  background: linear-gradient(135deg, var(--tsonga-green) 0%, #0a6636 100%);
+  color: var(--tsonga-white);
+}
+
+.gradient-card-gold {
+  background: linear-gradient(135deg, var(--tsonga-gold) 0%, #d48e1a 100%);
+  color: var(--tsonga-white);
+}
+
+.gradient-card-terracotta {
+  background: linear-gradient(135deg, var(--tsonga-terracotta) 0%, #b04020 100%);
+  color: var(--tsonga-white);
+}
+
+.gradient-card-charcoal {
+  background: linear-gradient(135deg, var(--tsonga-charcoal) 0%, #2a2a42 100%);
+  color: var(--tsonga-white);
+}
+
+/* Glass-morphism */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Hover-lift effect */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Smooth transitions on interactive elements */
+button,
+a,
+.mantine-NavLink-root,
+.mantine-Card-root,
+.mantine-Badge-root,
+.mantine-Tabs-tab {
+  transition: all 0.2s ease;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--tsonga-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4c4c4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a0a0a0;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* Main content area fade-in */
+.mantine-AppShell-main {
+  animation: fadeIn 0.3s ease forwards;
+}

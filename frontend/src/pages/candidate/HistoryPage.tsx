@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Table, Badge } from '@mantine/core';
+import { Table, Badge, Card } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import PageHeader from '../../components/common/PageHeader';
 import StatusBadge from '../../components/common/StatusBadge';
@@ -30,40 +30,42 @@ export default function HistoryPage() {
       {entries.length === 0 ? (
         <EmptyState message="No verification history" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Request</Table.Th>
-              <Table.Th>Employer</Table.Th>
-              <Table.Th>Query Type</Table.Th>
-              <Table.Th>Consent</Table.Th>
-              <Table.Th>Result</Table.Th>
-              <Table.Th>Date</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {entries.map((entry, i) => (
-              <Table.Tr key={i}>
-                <Table.Td>#{entry.request_id}</Table.Td>
-                <Table.Td>{entry.employer_name ?? '-'}</Table.Td>
-                <Table.Td>{getQueryLabel(entry.query_type)}</Table.Td>
-                <Table.Td>
-                  <StatusBadge status={entry.consent_status} />
-                </Table.Td>
-                <Table.Td>
-                  {entry.result ? (
-                    <Badge color={entry.result === 'Yes' ? 'green' : 'red'} variant="light" size="sm">
-                      {entry.result}
-                    </Badge>
-                  ) : (
-                    '-'
-                  )}
-                </Table.Td>
-                <Table.Td>{formatDateTime(entry.created_at)}</Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>Request</Table.Th>
+                <Table.Th>Employer</Table.Th>
+                <Table.Th>Query Type</Table.Th>
+                <Table.Th>Consent</Table.Th>
+                <Table.Th>Result</Table.Th>
+                <Table.Th>Date</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {entries.map((entry, i) => (
+                <Table.Tr key={i}>
+                  <Table.Td>#{entry.request_id}</Table.Td>
+                  <Table.Td>{entry.employer_name ?? '-'}</Table.Td>
+                  <Table.Td>{getQueryLabel(entry.query_type)}</Table.Td>
+                  <Table.Td>
+                    <StatusBadge status={entry.consent_status} />
+                  </Table.Td>
+                  <Table.Td>
+                    {entry.result ? (
+                      <Badge color={entry.result === 'Yes' ? 'saGreen' : 'saTerracotta'} variant="light" size="sm">
+                        {entry.result}
+                      </Badge>
+                    ) : (
+                      '-'
+                    )}
+                  </Table.Td>
+                  <Table.Td>{formatDateTime(entry.created_at)}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
     </>
   );

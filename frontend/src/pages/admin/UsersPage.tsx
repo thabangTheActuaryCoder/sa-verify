@@ -10,6 +10,7 @@ import {
   Group,
   Badge,
   Switch,
+  Card,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -27,13 +28,11 @@ export default function UsersPage() {
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Create form
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState<string | null>(null);
 
-  // Edit form
   const [editUser, setEditUser] = useState<UserRecord | null>(null);
   const [editFullName, setEditFullName] = useState('');
   const [editRole, setEditRole] = useState<string | null>(null);
@@ -120,7 +119,12 @@ export default function UsersPage() {
         title="User Management"
         subtitle="Manage system user accounts"
         actions={
-          <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={openCreate}
+            variant="gradient"
+            gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+          >
             Create User
           </Button>
         }
@@ -129,55 +133,56 @@ export default function UsersPage() {
       {users.length === 0 ? (
         <EmptyState message="No users found" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Username</Table.Th>
-              <Table.Th>Full Name</Table.Th>
-              <Table.Th>Role</Table.Th>
-              <Table.Th>Active</Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {users.map((u) => (
-              <Table.Tr key={u.id}>
-                <Table.Td>{u.id}</Table.Td>
-                <Table.Td ff="monospace">{u.username}</Table.Td>
-                <Table.Td>{u.full_name}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={u.role === 'admin' ? 'red' : u.role === 'employer' ? 'blue' : 'green'}
-                    variant="light"
-                    size="sm"
-                  >
-                    {u.role}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Badge color={u.is_active ? 'green' : 'red'} variant="light" size="sm">
-                    {u.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Button
-                    size="compact-xs"
-                    variant="light"
-                    leftSection={<IconEdit size={14} />}
-                    onClick={() => handleEditOpen(u)}
-                  >
-                    Edit
-                  </Button>
-                </Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Username</Table.Th>
+                <Table.Th>Full Name</Table.Th>
+                <Table.Th>Role</Table.Th>
+                <Table.Th>Active</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {users.map((u) => (
+                <Table.Tr key={u.id}>
+                  <Table.Td>{u.id}</Table.Td>
+                  <Table.Td ff="monospace">{u.username}</Table.Td>
+                  <Table.Td>{u.full_name}</Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={u.role === 'admin' ? 'saTerracotta' : u.role === 'employer' ? 'saGold' : 'saGreen'}
+                      variant="light"
+                      size="sm"
+                    >
+                      {u.role}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge color={u.is_active ? 'saGreen' : 'saTerracotta'} variant="light" size="sm">
+                      {u.is_active ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Button
+                      size="compact-xs"
+                      variant="light"
+                      leftSection={<IconEdit size={14} />}
+                      onClick={() => handleEditOpen(u)}
+                    >
+                      Edit
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
 
-      {/* Create Modal */}
-      <Modal opened={createOpened} onClose={closeCreate} title="Create User">
+      <Modal opened={createOpened} onClose={closeCreate} title="Create User" radius="lg">
         <Stack>
           <TextInput
             label="Username"
@@ -210,13 +215,19 @@ export default function UsersPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={closeCreate}>Cancel</Button>
-            <Button onClick={handleCreate} loading={submitting}>Create</Button>
+            <Button
+              onClick={handleCreate}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
+              Create
+            </Button>
           </Group>
         </Stack>
       </Modal>
 
-      {/* Edit Modal */}
-      <Modal opened={editOpened} onClose={closeEdit} title={`Edit User: ${editUser?.username}`}>
+      <Modal opened={editOpened} onClose={closeEdit} title={`Edit User: ${editUser?.username}`} radius="lg">
         <Stack>
           <TextInput
             label="Full Name"
@@ -240,7 +251,14 @@ export default function UsersPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={closeEdit}>Cancel</Button>
-            <Button onClick={handleUpdate} loading={submitting}>Update</Button>
+            <Button
+              onClick={handleUpdate}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
+              Update
+            </Button>
           </Group>
         </Stack>
       </Modal>

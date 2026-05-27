@@ -35,7 +35,6 @@ export default function EmployerRequestDetail() {
 
   useEffect(() => {
     fetchRequest();
-    // Auto-refresh every 15 seconds for pending requests
     const interval = setInterval(fetchRequest, 15000);
     return () => clearInterval(interval);
   }, [fetchRequest]);
@@ -81,7 +80,8 @@ export default function EmployerRequestDetail() {
               Refresh
             </Button>
             <Button
-              variant="light"
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
               leftSection={<IconDownload size={16} />}
               onClick={handleDownloadReport}
             >
@@ -98,7 +98,16 @@ export default function EmployerRequestDetail() {
         }
       />
 
-      <Card shadow="sm" withBorder mb="md" p="md">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="md"
+        p="md"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
         <Group wrap="wrap" gap="xl">
           <Stack gap={4}>
             <Text size="xs" c="dimmed">Candidate ID</Text>
@@ -125,13 +134,13 @@ export default function EmployerRequestDetail() {
         </Group>
       </Card>
 
-      <Card shadow="sm" withBorder p="md">
+      <Card shadow="sm" radius="lg" p="md">
         <Text fw={600} mb="sm">
           Verification Items ({request.items.length})
         </Text>
         <Table striped withTableBorder>
           <Table.Thead>
-            <Table.Tr>
+            <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
               <Table.Th>Query Type</Table.Th>
               <Table.Th>Parameters</Table.Th>
               <Table.Th>Consent</Table.Th>
@@ -163,7 +172,7 @@ export default function EmployerRequestDetail() {
                   </Table.Td>
                   <Table.Td>
                     {item.result ? (
-                      <Badge color={item.result === 'Yes' ? 'green' : 'red'} variant="light" size="sm">
+                      <Badge color={item.result === 'Yes' ? 'saGreen' : 'saTerracotta'} variant="light" size="sm">
                         {item.result}
                       </Badge>
                     ) : (

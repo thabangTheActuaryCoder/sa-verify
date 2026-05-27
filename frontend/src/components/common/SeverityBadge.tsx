@@ -5,16 +5,16 @@ interface SeverityBadgeProps {
 }
 
 const SEVERITY_COLOURS: Record<string, string> = {
-  critical: 'red',
-  high: 'orange',
-  medium: 'yellow',
-  low: 'blue',
+  critical: 'saTerracotta',
+  high: 'saTerracotta',
+  medium: 'saGold',
+  low: 'saGreen',
 };
 
 export default function SeverityBadge({ severity }: SeverityBadgeProps) {
   const colour = SEVERITY_COLOURS[severity] ?? 'gray';
   return (
-    <Badge color={colour} variant="filled" size="sm">
+    <Badge color={colour} variant="filled" size="sm" radius="md">
       {severity}
     </Badge>
   );

@@ -79,7 +79,12 @@ export default function DisputesPage() {
         title="My Disputes"
         subtitle="Dispute inaccurate information on your record"
         actions={
-          <Button leftSection={<IconPlus size={16} />} onClick={open}>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={open}
+            variant="gradient"
+            gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+          >
             New Dispute
           </Button>
         }
@@ -88,39 +93,41 @@ export default function DisputesPage() {
       {disputes.length === 0 ? (
         <EmptyState message="No disputes filed" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>Field</Table.Th>
-              <Table.Th>Reason</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Resolution</Table.Th>
-              <Table.Th>Created</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {disputes.map((d) => (
-              <Table.Tr key={d.id}>
-                <Table.Td>#{d.id}</Table.Td>
-                <Table.Td>{d.dispute_type}</Table.Td>
-                <Table.Td>{d.field_disputed}</Table.Td>
-                <Table.Td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {d.reason}
-                </Table.Td>
-                <Table.Td>
-                  <StatusBadge status={d.status} />
-                </Table.Td>
-                <Table.Td>{d.resolution_notes ?? '-'}</Table.Td>
-                <Table.Td>{formatDateTime(d.created_at)}</Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Type</Table.Th>
+                <Table.Th>Field</Table.Th>
+                <Table.Th>Reason</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>Resolution</Table.Th>
+                <Table.Th>Created</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {disputes.map((d) => (
+                <Table.Tr key={d.id}>
+                  <Table.Td>#{d.id}</Table.Td>
+                  <Table.Td>{d.dispute_type}</Table.Td>
+                  <Table.Td>{d.field_disputed}</Table.Td>
+                  <Table.Td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {d.reason}
+                  </Table.Td>
+                  <Table.Td>
+                    <StatusBadge status={d.status} />
+                  </Table.Td>
+                  <Table.Td>{d.resolution_notes ?? '-'}</Table.Td>
+                  <Table.Td>{formatDateTime(d.created_at)}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
 
-      <Modal opened={opened} onClose={close} title="File a Dispute">
+      <Modal opened={opened} onClose={close} title="File a Dispute" radius="lg">
         <Stack>
           <Select
             label="Dispute Type"
@@ -154,7 +161,12 @@ export default function DisputesPage() {
             <Button variant="default" onClick={close}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} loading={submitting}>
+            <Button
+              onClick={handleSubmit}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
               Submit Dispute
             </Button>
           </Group>

@@ -11,7 +11,6 @@ import {
   Alert,
   Center,
   Table,
-  Divider,
   Box,
 } from '@mantine/core';
 import { IconLogin, IconAlertCircle } from '@tabler/icons-react';
@@ -66,21 +65,37 @@ export default function LoginPage() {
   };
 
   return (
-    <Center mih="100vh" bg="gray.0" p="md">
-      <Stack w="100%" maw={480}>
+    <Center
+      mih="100vh"
+      p="md"
+      style={{
+        background: 'linear-gradient(135deg, #0D8044 0%, #1C1C2E 100%)',
+      }}
+    >
+      <Stack w="100%" maw={480} className="fade-in">
         <Box ta="center" mb="sm">
-          <Title order={1} c="saGreen.6">
+          <Title order={1} c="white">
             SA Verify
           </Title>
-          <Text c="dimmed" size="sm">
+          <Text c="rgba(255,255,255,0.7)" size="sm">
             National Verification System
           </Text>
         </Box>
 
-        <Card shadow="sm" radius="md" withBorder p="xl">
+        <Card
+          radius="lg"
+          p="xl"
+          className="glass-card"
+          style={{
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+          }}
+        >
           <form onSubmit={handleSubmit}>
             <Stack>
-              <Title order={3} ta="center">
+              <Title order={3} ta="center" c="#1C1C2E">
                 Sign In
               </Title>
 
@@ -111,13 +126,15 @@ export default function LoginPage() {
                 fullWidth
                 loading={loading}
                 leftSection={<IconLogin size={18} />}
+                variant="gradient"
+                gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
               >
                 Sign In
               </Button>
 
               <Text ta="center" size="sm">
                 Don't have an account?{' '}
-                <Text component={Link} to="/register" c="saGreen.6" fw={500} inherit>
+                <Text component={Link} to="/register" c="#F5A623" fw={600} inherit>
                   Register here
                 </Text>
               </Text>
@@ -125,13 +142,22 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        <Card shadow="sm" radius="md" withBorder p="md">
-          <Text fw={600} size="sm" mb="xs">
+        <Card
+          radius="lg"
+          p="md"
+          style={{
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+          }}
+        >
+          <Text fw={600} size="sm" mb="xs" c="#1C1C2E">
             Demo Accounts
           </Text>
           <Table striped highlightOnHover withTableBorder withColumnBorders fz="xs">
             <Table.Thead>
-              <Table.Tr>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
                 <Table.Th>Username</Table.Th>
                 <Table.Th>Password</Table.Th>
                 <Table.Th>Role</Table.Th>
@@ -157,7 +183,8 @@ export default function LoginPage() {
                   <Table.Td>
                     <Button
                       size="compact-xs"
-                      variant="light"
+                      variant="gradient"
+                      gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
                       onClick={() => handleDemoLogin(acc.username, acc.password)}
                       loading={loading}
                     >

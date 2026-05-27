@@ -1,29 +1,42 @@
 import { createTheme, MantineColorsTuple } from '@mantine/core';
 
 const saGreen: MantineColorsTuple = [
-  '#e8f5ed',
-  '#d1eadb',
-  '#a3d5b7',
-  '#72bf91',
-  '#4aab71',
-  '#2e9d5c',
-  '#1a5632',
-  '#1a5632',
-  '#154528',
-  '#0f341e',
+  '#E8F5E9',
+  '#C8E6C9',
+  '#A5D6A7',
+  '#81C784',
+  '#4CAF50',
+  '#2E9D5C',
+  '#0D8044',
+  '#0a6636',
+  '#074d28',
+  '#05391d',
 ];
 
 const saGold: MantineColorsTuple = [
-  '#fef6e2',
-  '#fceccc',
-  '#f8d99a',
-  '#f3c463',
-  '#efb337',
-  '#eca71a',
-  '#e8a817',
-  '#cd9210',
-  '#b78108',
-  '#9f6e00',
+  '#FFF3D6',
+  '#FDEAB8',
+  '#FBDE93',
+  '#F8D06A',
+  '#F5A623',
+  '#E09418',
+  '#C88212',
+  '#A86D0D',
+  '#8A5909',
+  '#6E4607',
+];
+
+const saTerracotta: MantineColorsTuple = [
+  '#FDEAE5',
+  '#FAD0C5',
+  '#F0A892',
+  '#E67F5E',
+  '#D4522A',
+  '#C04823',
+  '#A83D1E',
+  '#8E3318',
+  '#742913',
+  '#5B200F',
 ];
 
 export const theme = createTheme({
@@ -31,10 +44,41 @@ export const theme = createTheme({
   colors: {
     saGreen,
     saGold,
+    saTerracotta,
   },
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   headings: {
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   },
-  defaultRadius: 'sm',
+  defaultRadius: 'lg',
+  components: {
+    Card: {
+      defaultProps: {
+        shadow: 'sm',
+        radius: 'lg',
+      },
+      styles: () => ({
+        root: {
+          border: '1px solid rgba(0, 0, 0, 0.06)',
+        },
+      }),
+    },
+    Button: {
+      defaultProps: {
+        radius: 'md',
+      },
+    },
+    Paper: {
+      styles: () => ({
+        root: {
+          boxShadow: '0 2px 12px rgba(0, 0, 0, 0.06)',
+        },
+      }),
+    },
+    Table: {
+      defaultProps: {
+        borderRadius: 'md',
+      },
+    },
+  },
 });

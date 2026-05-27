@@ -9,6 +9,7 @@ import {
   Group,
   Badge,
   Switch,
+  Card,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -26,13 +27,11 @@ export default function CompaniesPage() {
   const [editOpened, { open: openEdit, close: closeEdit }] = useDisclosure(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Create form
   const [newName, setNewName] = useState('');
   const [newRegNum, setNewRegNum] = useState('');
   const [newSector, setNewSector] = useState('');
   const [newRegistered, setNewRegistered] = useState(true);
 
-  // Edit form
   const [editCompany, setEditCompany] = useState<CompanyRecord | null>(null);
   const [editName, setEditName] = useState('');
   const [editSector, setEditSector] = useState('');
@@ -119,7 +118,12 @@ export default function CompaniesPage() {
         title="Company Management"
         subtitle="Manage registered companies"
         actions={
-          <Button leftSection={<IconPlus size={16} />} onClick={openCreate}>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={openCreate}
+            variant="gradient"
+            gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+          >
             Add Company
           </Button>
         }
@@ -128,47 +132,48 @@ export default function CompaniesPage() {
       {companies.length === 0 ? (
         <EmptyState message="No companies found" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Name</Table.Th>
-              <Table.Th>Reg. Number</Table.Th>
-              <Table.Th>Sector</Table.Th>
-              <Table.Th>Registered</Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {companies.map((c) => (
-              <Table.Tr key={c.id}>
-                <Table.Td>{c.id}</Table.Td>
-                <Table.Td>{c.name}</Table.Td>
-                <Table.Td ff="monospace">{c.registration_number}</Table.Td>
-                <Table.Td>{c.sector ?? '-'}</Table.Td>
-                <Table.Td>
-                  <Badge color={c.is_registered ? 'green' : 'red'} variant="light" size="sm">
-                    {c.is_registered ? 'Yes' : 'No'}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>
-                  <Button
-                    size="compact-xs"
-                    variant="light"
-                    leftSection={<IconEdit size={14} />}
-                    onClick={() => handleEditOpen(c)}
-                  >
-                    Edit
-                  </Button>
-                </Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Name</Table.Th>
+                <Table.Th>Reg. Number</Table.Th>
+                <Table.Th>Sector</Table.Th>
+                <Table.Th>Registered</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {companies.map((c) => (
+                <Table.Tr key={c.id}>
+                  <Table.Td>{c.id}</Table.Td>
+                  <Table.Td>{c.name}</Table.Td>
+                  <Table.Td ff="monospace">{c.registration_number}</Table.Td>
+                  <Table.Td>{c.sector ?? '-'}</Table.Td>
+                  <Table.Td>
+                    <Badge color={c.is_registered ? 'saGreen' : 'saTerracotta'} variant="light" size="sm">
+                      {c.is_registered ? 'Yes' : 'No'}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Button
+                      size="compact-xs"
+                      variant="light"
+                      leftSection={<IconEdit size={14} />}
+                      onClick={() => handleEditOpen(c)}
+                    >
+                      Edit
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
 
-      {/* Create Modal */}
-      <Modal opened={createOpened} onClose={closeCreate} title="Add Company">
+      <Modal opened={createOpened} onClose={closeCreate} title="Add Company" radius="lg">
         <Stack>
           <TextInput
             label="Company Name"
@@ -194,13 +199,19 @@ export default function CompaniesPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={closeCreate}>Cancel</Button>
-            <Button onClick={handleCreate} loading={submitting}>Create</Button>
+            <Button
+              onClick={handleCreate}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
+              Create
+            </Button>
           </Group>
         </Stack>
       </Modal>
 
-      {/* Edit Modal */}
-      <Modal opened={editOpened} onClose={closeEdit} title={`Edit: ${editCompany?.name}`}>
+      <Modal opened={editOpened} onClose={closeEdit} title={`Edit: ${editCompany?.name}`} radius="lg">
         <Stack>
           <TextInput
             label="Company Name"
@@ -219,7 +230,14 @@ export default function CompaniesPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={closeEdit}>Cancel</Button>
-            <Button onClick={handleUpdate} loading={submitting}>Update</Button>
+            <Button
+              onClick={handleUpdate}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
+              Update
+            </Button>
           </Group>
         </Stack>
       </Modal>

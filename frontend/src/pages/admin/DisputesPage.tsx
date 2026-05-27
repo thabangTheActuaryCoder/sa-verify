@@ -8,6 +8,7 @@ import {
   Stack,
   Group,
   Text,
+  Card,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
@@ -102,51 +103,54 @@ export default function AdminDisputesPage() {
       {disputes.length === 0 ? (
         <EmptyState message="No disputes found" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Citizen</Table.Th>
-              <Table.Th>ID Number</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>Field</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Created</Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {disputes.map((d) => (
-              <Table.Tr key={d.id}>
-                <Table.Td>#{d.id}</Table.Td>
-                <Table.Td>{d.citizen_name}</Table.Td>
-                <Table.Td ff="monospace">{maskIdNumber(d.citizen_id_number)}</Table.Td>
-                <Table.Td>{d.dispute_type}</Table.Td>
-                <Table.Td>{d.field_disputed}</Table.Td>
-                <Table.Td>
-                  <StatusBadge status={d.status} />
-                </Table.Td>
-                <Table.Td>{formatDateTime(d.created_at)}</Table.Td>
-                <Table.Td>
-                  <Button
-                    size="compact-xs"
-                    variant="light"
-                    leftSection={<IconGavel size={14} />}
-                    onClick={() => handleResolveOpen(d)}
-                  >
-                    Resolve
-                  </Button>
-                </Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Citizen</Table.Th>
+                <Table.Th>ID Number</Table.Th>
+                <Table.Th>Type</Table.Th>
+                <Table.Th>Field</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>Created</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {disputes.map((d) => (
+                <Table.Tr key={d.id}>
+                  <Table.Td>#{d.id}</Table.Td>
+                  <Table.Td>{d.citizen_name}</Table.Td>
+                  <Table.Td ff="monospace">{maskIdNumber(d.citizen_id_number)}</Table.Td>
+                  <Table.Td>{d.dispute_type}</Table.Td>
+                  <Table.Td>{d.field_disputed}</Table.Td>
+                  <Table.Td>
+                    <StatusBadge status={d.status} />
+                  </Table.Td>
+                  <Table.Td>{formatDateTime(d.created_at)}</Table.Td>
+                  <Table.Td>
+                    <Button
+                      size="compact-xs"
+                      variant="light"
+                      color="saGold"
+                      leftSection={<IconGavel size={14} />}
+                      onClick={() => handleResolveOpen(d)}
+                    >
+                      Resolve
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
 
-      <Modal opened={opened} onClose={close} title={`Resolve Dispute #${selectedDispute?.id}`}>
+      <Modal opened={opened} onClose={close} title={`Resolve Dispute #${selectedDispute?.id}`} radius="lg">
         <Stack>
           {selectedDispute && (
-            <>
+            <Card radius="md" p="sm" style={{ background: '#FFF9F2' }}>
               <Text size="sm">
                 <strong>Citizen:</strong> {selectedDispute.citizen_name}
               </Text>
@@ -159,7 +163,7 @@ export default function AdminDisputesPage() {
               <Text size="sm">
                 <strong>Reason:</strong> {selectedDispute.reason}
               </Text>
-            </>
+            </Card>
           )}
           <Select
             label="Resolution Status"
@@ -182,7 +186,14 @@ export default function AdminDisputesPage() {
           />
           <Group justify="flex-end">
             <Button variant="default" onClick={close}>Cancel</Button>
-            <Button onClick={handleResolve} loading={submitting}>Submit</Button>
+            <Button
+              onClick={handleResolve}
+              loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
+              Submit
+            </Button>
           </Group>
         </Stack>
       </Modal>

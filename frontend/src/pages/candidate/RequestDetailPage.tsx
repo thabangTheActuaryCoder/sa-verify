@@ -8,7 +8,6 @@ import {
   Button,
   Table,
   Badge,
-  Alert,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import { IconArrowLeft, IconCheck, IconX } from '@tabler/icons-react';
@@ -97,7 +96,16 @@ export default function CandidateRequestDetail() {
         }
       />
 
-      <Card shadow="sm" withBorder mb="md" p="md">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="md"
+        p="md"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
         <Group justify="space-between" wrap="wrap">
           <Stack gap={4}>
             <Group gap="xs">
@@ -111,7 +119,14 @@ export default function CandidateRequestDetail() {
       </Card>
 
       {pendingItems.length > 0 && (
-        <Card shadow="sm" withBorder mb="md" p="md">
+        <Card
+          shadow="sm"
+          radius="lg"
+          mb="md"
+          p="md"
+          className="hover-lift"
+          style={{ borderLeft: '4px solid #F5A623' }}
+        >
           <Text fw={600} mb="sm">
             Pending Consent ({pendingItems.length})
           </Text>
@@ -148,8 +163,9 @@ export default function CandidateRequestDetail() {
                       <Group gap="xs">
                         <Button
                           size="compact-xs"
+                          variant={decisions[item.id] === 'approved' ? 'gradient' : 'light'}
+                          gradient={{ from: '#0D8044', to: '#0a6636' }}
                           color="green"
-                          variant={decisions[item.id] === 'approved' ? 'filled' : 'light'}
                           leftSection={<IconCheck size={14} />}
                           onClick={() => handleDecision(item.id, 'approved')}
                         >
@@ -157,7 +173,7 @@ export default function CandidateRequestDetail() {
                         </Button>
                         <Button
                           size="compact-xs"
-                          color="red"
+                          color="saTerracotta"
                           variant={decisions[item.id] === 'declined' ? 'filled' : 'light'}
                           leftSection={<IconX size={14} />}
                           onClick={() => handleDecision(item.id, 'declined')}
@@ -172,7 +188,13 @@ export default function CandidateRequestDetail() {
             </Table.Tbody>
           </Table>
           <Group justify="flex-end" mt="md">
-            <Button onClick={handleSubmit} loading={submitting} disabled={Object.keys(decisions).length === 0}>
+            <Button
+              onClick={handleSubmit}
+              loading={submitting}
+              disabled={Object.keys(decisions).length === 0}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
+            >
               Submit Consent
             </Button>
           </Group>
@@ -180,7 +202,7 @@ export default function CandidateRequestDetail() {
       )}
 
       {processedItems.length > 0 && (
-        <Card shadow="sm" withBorder p="md">
+        <Card shadow="sm" radius="lg" p="md">
           <Text fw={600} mb="sm">
             Processed Items ({processedItems.length})
           </Text>
@@ -202,7 +224,7 @@ export default function CandidateRequestDetail() {
                   </Table.Td>
                   <Table.Td>
                     {item.result ? (
-                      <Badge color={item.result === 'Yes' ? 'green' : 'red'} variant="light" size="sm">
+                      <Badge color={item.result === 'Yes' ? 'saGreen' : 'saTerracotta'} variant="light" size="sm">
                         {item.result}
                       </Badge>
                     ) : (

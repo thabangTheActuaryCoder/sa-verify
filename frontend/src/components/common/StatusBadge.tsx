@@ -5,22 +5,22 @@ interface StatusBadgeProps {
 }
 
 const STATUS_COLOURS: Record<string, string> = {
-  pending: 'yellow',
+  pending: 'saGold',
   partial: 'blue',
-  completed: 'green',
+  completed: 'saGreen',
   expired: 'gray',
-  approved: 'green',
-  declined: 'red',
+  approved: 'saGreen',
+  declined: 'saTerracotta',
   under_review: 'blue',
-  resolved: 'green',
-  rejected: 'red',
-  open: 'yellow',
+  resolved: 'saGreen',
+  rejected: 'saTerracotta',
+  open: 'saGold',
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {
   const colour = STATUS_COLOURS[status] ?? 'gray';
   return (
-    <Badge color={colour} variant="light" size="sm">
+    <Badge color={colour} variant="light" size="sm" radius="md">
       {status.replace(/_/g, ' ')}
     </Badge>
   );

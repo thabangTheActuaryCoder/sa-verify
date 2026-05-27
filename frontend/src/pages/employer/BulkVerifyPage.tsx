@@ -75,10 +75,19 @@ export default function BulkVerifyPage() {
         subtitle="Submit verification requests for multiple candidates at once"
       />
 
-      <Card shadow="sm" withBorder mb="lg" p="md">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="lg"
+        p="md"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
         <Stack gap="sm">
           {formError && (
-            <Alert icon={<IconAlertCircle size={16} />} color="red" variant="light">
+            <Alert icon={<IconAlertCircle size={16} />} color="saTerracotta" variant="light">
               {formError}
             </Alert>
           )}
@@ -107,6 +116,8 @@ export default function BulkVerifyPage() {
               leftSection={<IconSend size={16} />}
               onClick={handleSubmit}
               loading={submitting}
+              variant="gradient"
+              gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
             >
               Submit Bulk Request
             </Button>
@@ -115,7 +126,7 @@ export default function BulkVerifyPage() {
       </Card>
 
       {result && (
-        <Card shadow="sm" withBorder p="md">
+        <Card shadow="sm" radius="lg" p="md">
           <Text fw={600} mb="sm">
             Results
           </Text>
@@ -125,53 +136,57 @@ export default function BulkVerifyPage() {
 
           {result.submitted.length > 0 && (
             <>
-              <Text size="sm" fw={500} mb="xs" c="green">
+              <Text size="sm" fw={500} mb="xs" c="saGreen.6">
                 Submitted ({result.submitted.length})
               </Text>
-              <Table striped withTableBorder mb="md">
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>ID Number</Table.Th>
-                    <Table.Th>Request ID</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {result.submitted.map((s) => (
-                    <Table.Tr key={s.request_id}>
-                      <Table.Td ff="monospace">{s.id_number}</Table.Td>
-                      <Table.Td>#{s.request_id}</Table.Td>
+              <Card radius="lg" p={0} mb="md" style={{ overflow: 'hidden' }}>
+                <Table striped withTableBorder>
+                  <Table.Thead>
+                    <Table.Tr style={{ backgroundColor: '#E8F5E9' }}>
+                      <Table.Th>ID Number</Table.Th>
+                      <Table.Th>Request ID</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {result.submitted.map((s) => (
+                      <Table.Tr key={s.request_id}>
+                        <Table.Td ff="monospace">{s.id_number}</Table.Td>
+                        <Table.Td>#{s.request_id}</Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Card>
             </>
           )}
 
           {result.errors.length > 0 && (
             <>
-              <Text size="sm" fw={500} mb="xs" c="red">
+              <Text size="sm" fw={500} mb="xs" c="saTerracotta.4">
                 Errors ({result.errors.length})
               </Text>
-              <Table striped withTableBorder>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>ID Number</Table.Th>
-                    <Table.Th>Error</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {result.errors.map((err, i) => (
-                    <Table.Tr key={i}>
-                      <Table.Td ff="monospace">{err.id_number}</Table.Td>
-                      <Table.Td>
-                        <Badge color="red" variant="light" size="sm">
-                          {err.error}
-                        </Badge>
-                      </Table.Td>
+              <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+                <Table striped withTableBorder>
+                  <Table.Thead>
+                    <Table.Tr style={{ backgroundColor: '#FDEAE5' }}>
+                      <Table.Th>ID Number</Table.Th>
+                      <Table.Th>Error</Table.Th>
                     </Table.Tr>
-                  ))}
-                </Table.Tbody>
-              </Table>
+                  </Table.Thead>
+                  <Table.Tbody>
+                    {result.errors.map((err, i) => (
+                      <Table.Tr key={i}>
+                        <Table.Td ff="monospace">{err.id_number}</Table.Td>
+                        <Table.Td>
+                          <Badge color="saTerracotta" variant="light" size="sm">
+                            {err.error}
+                          </Badge>
+                        </Table.Td>
+                      </Table.Tr>
+                    ))}
+                  </Table.Tbody>
+                </Table>
+              </Card>
             </>
           )}
         </Card>

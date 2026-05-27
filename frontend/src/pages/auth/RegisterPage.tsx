@@ -47,21 +47,36 @@ export default function RegisterPage() {
   };
 
   return (
-    <Center mih="100vh" bg="gray.0" p="md">
-      <Stack w="100%" maw={480}>
+    <Center
+      mih="100vh"
+      p="md"
+      style={{
+        background: 'linear-gradient(135deg, #0D8044 0%, #1C1C2E 100%)',
+      }}
+    >
+      <Stack w="100%" maw={480} className="fade-in">
         <Box ta="center" mb="sm">
-          <Title order={1} c="saGreen.6">
+          <Title order={1} c="white">
             SA Verify
           </Title>
-          <Text c="dimmed" size="sm">
+          <Text c="rgba(255,255,255,0.7)" size="sm">
             Candidate Registration
           </Text>
         </Box>
 
-        <Card shadow="sm" radius="md" withBorder p="xl">
+        <Card
+          radius="lg"
+          p="xl"
+          style={{
+            background: 'rgba(255, 255, 255, 0.9)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.3)',
+          }}
+        >
           <form onSubmit={handleSubmit}>
             <Stack>
-              <Title order={3} ta="center">
+              <Title order={3} ta="center" c="#1C1C2E">
                 Create Account
               </Title>
 
@@ -115,13 +130,15 @@ export default function RegisterPage() {
                 fullWidth
                 loading={loading}
                 leftSection={<IconUserPlus size={18} />}
+                variant="gradient"
+                gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
               >
                 Register
               </Button>
 
               <Text ta="center" size="sm">
                 Already have an account?{' '}
-                <Text component={Link} to="/login" c="saGreen.6" fw={500} inherit>
+                <Text component={Link} to="/login" c="#F5A623" fw={600} inherit>
                   Sign in
                 </Text>
               </Text>

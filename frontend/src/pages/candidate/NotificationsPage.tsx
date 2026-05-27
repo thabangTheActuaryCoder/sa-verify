@@ -51,22 +51,24 @@ export default function NotificationsPage() {
             <Card
               key={n.id}
               shadow="xs"
-              withBorder
+              radius="md"
               p="sm"
+              className="hover-lift"
               style={{
                 opacity: n.is_read ? 0.7 : 1,
-                borderLeft: n.is_read ? undefined : '3px solid var(--mantine-color-saGreen-6)',
+                borderLeft: n.is_read ? '3px solid transparent' : '3px solid #F5A623',
+                background: n.is_read ? '#FFFFFF' : '#FFF9F2',
               }}
             >
               <Group justify="space-between" wrap="wrap">
                 <Stack gap={2} style={{ flex: 1 }}>
                   <Group gap="xs">
-                    <IconBell size={16} />
+                    <IconBell size={16} color={n.is_read ? '#888' : '#F5A623'} />
                     <Text size="sm" fw={n.is_read ? 400 : 600}>
                       {n.title}
                     </Text>
                     {!n.is_read && (
-                      <Badge size="xs" color="blue">
+                      <Badge size="xs" color="saGold">
                         New
                       </Badge>
                     )}

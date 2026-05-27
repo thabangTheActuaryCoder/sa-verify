@@ -89,7 +89,17 @@ export default function BlockedPage() {
         subtitle="Prevent companies from requesting verification of your records"
       />
 
-      <Card shadow="sm" withBorder mb="md" p="md">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="md"
+        p="md"
+        className="hover-lift"
+        style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
+        }}
+      >
         <Text fw={500} size="sm" mb="xs">
           Block a Company
         </Text>
@@ -107,6 +117,8 @@ export default function BlockedPage() {
             onClick={handleBlock}
             loading={submitting}
             disabled={!selectedCompany}
+            variant="gradient"
+            gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
           >
             Block
           </Button>
@@ -116,34 +128,36 @@ export default function BlockedPage() {
       {blocked.length === 0 ? (
         <EmptyState message="No companies blocked" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Company</Table.Th>
-              <Table.Th>Blocked At</Table.Th>
-              <Table.Th>Actions</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {blocked.map((b) => (
-              <Table.Tr key={b.id}>
-                <Table.Td>{b.company_name}</Table.Td>
-                <Table.Td>{formatDateTime(b.blocked_at)}</Table.Td>
-                <Table.Td>
-                  <Button
-                    size="compact-xs"
-                    color="red"
-                    variant="light"
-                    leftSection={<IconTrash size={14} />}
-                    onClick={() => handleUnblock(b.id)}
-                  >
-                    Unblock
-                  </Button>
-                </Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>Company</Table.Th>
+                <Table.Th>Blocked At</Table.Th>
+                <Table.Th>Actions</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {blocked.map((b) => (
+                <Table.Tr key={b.id}>
+                  <Table.Td>{b.company_name}</Table.Td>
+                  <Table.Td>{formatDateTime(b.blocked_at)}</Table.Td>
+                  <Table.Td>
+                    <Button
+                      size="compact-xs"
+                      color="saTerracotta"
+                      variant="light"
+                      leftSection={<IconTrash size={14} />}
+                      onClick={() => handleUnblock(b.id)}
+                    >
+                      Unblock
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
     </>
   );

@@ -67,7 +67,17 @@ export default function DocumentsPage() {
         subtitle="Upload supporting documents for disputes or verification"
       />
 
-      <Card shadow="sm" withBorder mb="md" p="md">
+      <Card
+        shadow="sm"
+        radius="lg"
+        mb="md"
+        p="md"
+        className="hover-lift"
+        style={{
+          background: '#FFF9F2',
+          border: '2px dashed #F5A623',
+        }}
+      >
         <Text fw={500} size="sm" mb="xs">
           Upload Document
         </Text>
@@ -99,6 +109,8 @@ export default function DocumentsPage() {
             onClick={handleUpload}
             loading={uploading}
             disabled={!file || !docType}
+            variant="gradient"
+            gradient={{ from: '#0D8044', to: '#F5A623', deg: 135 }}
           >
             Upload
           </Button>
@@ -108,26 +120,28 @@ export default function DocumentsPage() {
       {documents.length === 0 ? (
         <EmptyState message="No documents uploaded" />
       ) : (
-        <Table striped withTableBorder highlightOnHover>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>ID</Table.Th>
-              <Table.Th>Filename</Table.Th>
-              <Table.Th>Type</Table.Th>
-              <Table.Th>Uploaded</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {documents.map((d) => (
-              <Table.Tr key={d.id}>
-                <Table.Td>#{d.id}</Table.Td>
-                <Table.Td>{d.filename}</Table.Td>
-                <Table.Td>{d.document_type}</Table.Td>
-                <Table.Td>{formatDateTime(d.uploaded_at)}</Table.Td>
+        <Card radius="lg" p={0} style={{ overflow: 'hidden' }}>
+          <Table striped withTableBorder highlightOnHover>
+            <Table.Thead>
+              <Table.Tr style={{ backgroundColor: '#FFF3D6' }}>
+                <Table.Th>ID</Table.Th>
+                <Table.Th>Filename</Table.Th>
+                <Table.Th>Type</Table.Th>
+                <Table.Th>Uploaded</Table.Th>
               </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+            </Table.Thead>
+            <Table.Tbody>
+              {documents.map((d) => (
+                <Table.Tr key={d.id}>
+                  <Table.Td>#{d.id}</Table.Td>
+                  <Table.Td>{d.filename}</Table.Td>
+                  <Table.Td>{d.document_type}</Table.Td>
+                  <Table.Td>{formatDateTime(d.uploaded_at)}</Table.Td>
+                </Table.Tr>
+              ))}
+            </Table.Tbody>
+          </Table>
+        </Card>
       )}
     </>
   );
