@@ -59,3 +59,16 @@ if os.path.isdir(FRONTEND_DIST):
 @app.on_event("startup")
 def on_startup():
     Base.metadata.create_all(bind=engine)
+    # Auto-seed demo data if database is empty (first deploy)
+    from app.database import SessionLocal
+    from app.models.user import User
+    db = SessionLocal()
+    try:
+        if db.query(User).count() == 0:
+            db.close()
+            import subprocess, sys
+            subprocess.run([sys.executable, "seed_data.py"], check=True)
+        else:
+            db.close()
+    except Exception:
+        db.close()
