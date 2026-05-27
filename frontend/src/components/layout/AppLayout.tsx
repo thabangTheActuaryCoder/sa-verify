@@ -29,7 +29,7 @@ import {
 } from '@tabler/icons-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotifications } from '../../hooks/useNotifications';
-import SAMap from '../common/SAMap';
+import SAFlag from '../common/SAMap';
 
 interface NavItem {
   label: string;
@@ -162,7 +162,7 @@ export default function AppLayout() {
               </Menu.Dropdown>
             </Menu>
             <Box visibleFrom="sm">
-              <SAMap width={40} height={40} />
+              <SAFlag width={56} height={38} />
             </Box>
           </Group>
         </Group>
