@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Disputes - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>My Disputes</h1>
+    <p class="section-desc">If your records are incorrect, raise a dispute to have them reviewed and corrected.</p>
+
+    <section class="section">
+        <h2>Raise a New Dispute</h2>
+        <form id="disputeForm" onsubmit="submitDispute(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Dispute Type</label>
+                    <select id="disputeType" required>
+                        <option value="">Select type...</option>
+                        <option value="employment">Employment Record</option>
+                        <option value="qualification">Qualification</option>
+                        <option value="criminal_record">Criminal Record</option>
+                        <option value="credit">Credit Record</option>
+                        <option value="address">Address</option>
+                        <option value="licence">Driver's Licence</option>
+                        <option value="professional">Professional Registration</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Field Disputed</label>
+                    <input type="text" id="fieldDisputed" required placeholder="e.g. Salary bracket at Discovery">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Reason</label>
+                <textarea id="disputeReason" rows="3" required placeholder="Explain what is incorrect and what the correct information should be"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Dispute</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>My Disputes</h2>
+        <div id="disputesList"><p class="loading">Loading...</p></div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadDisputes() {
+    const container = document.getElementById('disputesList');
+    try {
+        const disputes = await apiGet('/api/candidate/disputes');
+        if (!disputes.length) { container.innerHTML = '<p class="empty-state">No disputes raised yet.</p>'; return; }
+        container.innerHTML = disputes.map(d => `
+            <div class="request-card ${d.status === 'open' ? 'pending' : d.status === 'resolved' ? 'completed' : ''}">
+                <div class="request-header">
+                    <span class="request-id">#${d.id} - ${d.dispute_type}</span>
+                    <span class="status-badge status-${d.status === 'open' ? 'pending' : d.status === 'resolved' ? 'completed' : 'partial'}">${d.status}</span>
+                </div>
+                <div class="request-body">
+                    <p><strong>Field:</strong> ${d.field_disputed}</p>
+                    <p><strong>Reason:</strong> ${d.reason}</p>
+                    ${d.resolution_notes ? `<p><strong>Resolution:</strong> ${d.resolution_notes}</p>` : ''}
+                    <p><strong>Submitted:</strong> ${formatDate(d.created_at)}</p>
+                </div>
+            </div>
+        `).join('');
+    } catch { container.innerHTML = '<p class="error">Failed to load disputes.</p>'; }
+}
+
+async function submitDispute(e) {
+    e.preventDefault();
+    try {
+        await apiPost('/api/candidate/disputes', {
+            dispute_type: document.getElementById('disputeType').value,
+            field_disputed: document.getElementById('fieldDisputed').value,
+            reason: document.getElementById('disputeReason').value,
+        });
+        showAlert('Dispute submitted successfully.', 'success');
+        document.getElementById('disputeForm').reset();
+        loadDisputes();
+    } catch (err) { showAlert(err.message || 'Failed to submit dispute.', 'error'); }
+}
+
+loadDisputes();
+</script>
+{% endblock %}

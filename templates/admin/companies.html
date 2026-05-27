@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Company Management - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <a href="/admin/dashboard" class="back-link">Back to Dashboard</a>
+    <h1>Company Management</h1>
+
+    <section class="section">
+        <h2>Register Company</h2>
+        <form id="companyForm" onsubmit="createCompany(event)">
+            <div class="form-row">
+                <div class="form-group"><label>Company Name</label><input type="text" id="compName" required></div>
+                <div class="form-group"><label>Registration Number</label><input type="text" id="compReg" required placeholder="e.g. 1999/007789/06"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Sector</label><input type="text" id="compSector" placeholder="e.g. Financial Services"></div>
+                <div class="form-group"><label>CIPC Registered</label>
+                    <select id="compRegistered"><option value="true">Yes</option><option value="false">No</option></select>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Register Company</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>All Companies</h2>
+        <div id="companiesList"><p class="loading">Loading...</p></div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('admin');
+
+async function loadCompanies() {
+    const c = document.getElementById('companiesList');
+    try {
+        const companies = await apiGet('/api/admin/companies');
+        c.innerHTML = `<table class="data-table"><thead><tr><th>ID</th><th>Name</th><th>Reg No.</th><th>Sector</th><th>Registered</th><th>Actions</th></tr></thead><tbody>
+            ${companies.map(co => `<tr>
+                <td>${co.id}</td><td>${co.name}</td><td>${co.registration_number}</td>
+                <td>${co.sector || 'N/A'}</td>
+                <td>${co.is_registered ? 'Yes' : '<span style="color:red">No</span>'}</td>
+                <td><button class="btn btn-outline btn-xs" onclick="toggleReg(${co.id}, ${!co.is_registered})">${co.is_registered ? 'Deregister' : 'Register'}</button></td>
+            </tr>`).join('')}
+        </tbody></table>`;
+    } catch { c.innerHTML = '<p class="error">Failed to load.</p>'; }
+}
+
+async function createCompany(e) {
+    e.preventDefault();
+    try {
+        await apiPost('/api/admin/companies', {
+            name: document.getElementById('compName').value,
+            registration_number: document.getElementById('compReg').value,
+            sector: document.getElementById('compSector').value || null,
+            is_registered: document.getElementById('compRegistered').value === 'true',
+        });
+        showAlert('Company registered.', 'success');
+        document.getElementById('companyForm').reset();
+        loadCompanies();
+    } catch (err) { showAlert(err.message || 'Failed.', 'error'); }
+}
+
+async function toggleReg(id, reg) {
+    try {
+        const resp = await fetch(`/api/admin/companies/${id}`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`},
+            body: JSON.stringify({is_registered: reg})
+        });
+        if (!resp.ok) throw new Error();
+        loadCompanies();
+    } catch { showAlert('Failed.', 'error'); }
+}
+
+loadCompanies();
+</script>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - SA Verify{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>Admin Dashboard</h1>
+    <p class="welcome">Welcome, <span id="welcomeName"></span></p>
+
+    <nav class="sub-nav">
+        <a href="/admin/dashboard" class="sub-nav-link active">Dashboard</a>
+        <a href="/admin/users" class="sub-nav-link">User Management</a>
+        <a href="/admin/companies" class="sub-nav-link">Company Management</a>
+        <a href="/admin/disputes" class="sub-nav-link">Disputes</a>
+    </nav>
+
+    <section class="section">
+        <h2>System Statistics</h2>
+        <div class="stats-grid" id="statsGrid">
+            <p class="loading">Loading statistics...</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Fraud Alerts</h2>
+        <div class="section-actions">
+            <button class="btn btn-danger btn-sm" onclick="sendNotifications()" id="notifyBtn">
+                Send Notifications (SASSA / SARS / Employers)
+            </button>
+        </div>
+        <div id="fraudAlerts">
+            <p class="loading">Loading fraud alerts...</p>
+        </div>
+        <div id="notificationResults" style="display:none;"></div>
+    </section>
+
+    <section class="section">
+        <h2>Recent Verification Requests</h2>
+        <div id="recentRequests">
+            <p class="loading">Loading requests...</p>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Audit Log</h2>
+        <div id="auditLog">
+            <p class="loading">Loading audit log...</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth('admin');
+
+document.getElementById('welcomeName').textContent = localStorage.getItem('fullName') || 'Admin';
+
+async function loadStats() {
+    const container = document.getElementById('statsGrid');
+    try {
+        const stats = await apiGet('/api/admin/stats');
+        container.innerHTML = `
+            <div class="stat-card">
+                <div class="stat-value">${stats.total_citizens}</div>
+                <div class="stat-label">Citizens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${stats.total_companies}</div>
+                <div class="stat-label">Companies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${stats.total_verification_requests}</div>
+                <div class="stat-label">Verification Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${stats.pending_requests}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${stats.completed_requests}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card stat-alert">
+                <div class="stat-value">${stats.total_fraud_alerts}</div>
+                <div class="stat-label">Fraud Alerts</div>
+            </div>
+        `;
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load statistics.</p>';
+    }
+}
+
+async function loadFraudAlerts() {
+    const container = document.getElementById('fraudAlerts');
+    try {
+        const alerts = await apiGet('/api/admin/fraud-alerts');
+        if (alerts.length === 0) {
+            container.innerHTML = '<p class="empty-state">No fraud alerts detected.</p>';
+            return;
+        }
+
+        container.innerHTML = alerts.map(alert => `
+            <div class="alert-card severity-${alert.severity}">
+                <div class="alert-header">
+                    <span class="alert-type">${formatAlertType(alert.alert_type)}</span>
+                    <span class="severity-badge severity-${alert.severity}">${alert.severity.toUpperCase()}</span>
+                </div>
+                <div class="alert-body">
+                    <p><strong>Citizen:</strong> ${alert.citizen_name} (${alert.citizen_id_number})</p>
+                    <p>${alert.description}</p>
+                    ${alert.details && alert.details.recommended_actions ? `
+                        <div class="recommended-actions">
+                            <strong>Recommended Actions:</strong>
+                            <ul>
+                                ${alert.details.recommended_actions.map(a => `<li>${a}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load fraud alerts.</p>';
+    }
+}
+
+async function loadRecentRequests() {
+    const container = document.getElementById('recentRequests');
+    try {
+        const requests = await apiGet('/api/admin/requests');
+        if (requests.length === 0) {
+            container.innerHTML = '<p class="empty-state">No verification requests.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Employer</th>
+                        <th>Candidate ID</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${requests.map(r => `
+                        <tr>
+                            <td>#${r.id}</td>
+                            <td>${r.employer_name || 'N/A'}</td>
+                            <td>${r.candidate_id_number}</td>
+                            <td>${r.item_count}</td>
+                            <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                            <td>${formatDate(r.created_at)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load requests.</p>';
+    }
+}
+
+async function loadAuditLog() {
+    const container = document.getElementById('auditLog');
+    try {
+        const entries = await apiGet('/api/admin/audit-log?limit=50');
+        if (entries.length === 0) {
+            container.innerHTML = '<p class="empty-state">No audit entries yet.</p>';
+            return;
+        }
+
+        container.innerHTML = `
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>User</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${entries.map(e => `
+                        <tr>
+                            <td>${formatDate(e.timestamp)}</td>
+                            <td>${e.username || 'system'}</td>
+                            <td>${e.action}</td>
+                            <td>${e.resource_type}${e.resource_id ? ' #' + e.resource_id : ''}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load audit log.</p>';
+    }
+}
+
+function formatAlertType(type) {
+    return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+async function sendNotifications() {
+    const btn = document.getElementById('notifyBtn');
+    const resultsDiv = document.getElementById('notificationResults');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+
+    try {
+        const data = await apiPost('/api/admin/fraud-alerts/notify', {});
+        resultsDiv.style.display = 'block';
+
+        if (data.notifications_dispatched.length === 0) {
+            resultsDiv.innerHTML = '<div class="info-box"><p>No notifications to send.</p></div>';
+        } else {
+            resultsDiv.innerHTML = `
+                <div class="info-box" style="margin-top: 1rem;">
+                    <h3>Notifications Dispatched</h3>
+                    ${data.notifications_dispatched.map(n => `
+                        <div style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+                            <p><strong>${n.citizen}</strong></p>
+                            ${n.notifications_sent.map(ns => `
+                                <p style="font-size: 0.85rem; margin-left: 1rem;">
+                                    ${ns.type.replace(/_/g, ' ').toUpperCase()}
+                                    to <strong>${ns.recipient}</strong>
+                                    - ${ns.status}
+                                </p>
+                            `).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        showAlert(`Notifications sent for ${data.total_alerts} fraud alerts.`, 'success');
+        loadAuditLog();
+    } catch (err) {
+        showAlert('Failed to send notifications.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send Notifications (SASSA / SARS / Employers)';
+    }
+}
+
+loadStats();
+loadFraudAlerts();
+loadRecentRequests();
+loadAuditLog();
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Employer Dashboard - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Employer Dashboard</h1>
+    <p class="welcome">Welcome, <span id="welcomeName"></span></p>
+
+    <nav class="sub-nav">
+        <a href="/employer/dashboard" class="sub-nav-link active">Dashboard</a>
+        <a href="/employer/bulk-verify" class="sub-nav-link">Bulk Verification</a>
+        <a href="/candidate/notifications" class="sub-nav-link" onclick="event.preventDefault(); window.location.href='/employer/dashboard';">Notifications <span id="notifBadge" class="notif-badge" style="display:none;"></span></a>
+    </nav>
+
+    <section class="section">
+        <h2>New Verification Request</h2>
+        <form id="verifyForm" onsubmit="submitVerification(event)">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="candidateId">Candidate SA ID Number</label>
+                    <input type="text" id="candidateId" required placeholder="13-digit SA ID" maxlength="13" pattern="\d{13}">
+                </div>
+                <div class="form-group">
+                    <label for="verifyReason">Reason for Verification</label>
+                    <input type="text" id="verifyReason" placeholder="e.g. Job application, Background check">
+                </div>
+            </div>
+
+            <div class="query-builder">
+                <h3>Select Queries</h3>
+                <div id="queryItems"></div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="addQuery()">+ Add Query</button>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">Submit Verification Request</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Previous Requests</h2>
+        <div class="form-row" style="margin-bottom:1rem;">
+            <div class="form-group">
+                <input type="text" id="searchInput" placeholder="Search by candidate ID..." oninput="loadRequests()">
+            </div>
+            <div class="form-group">
+                <select id="statusFilter" onchange="loadRequests()">
+                    <option value="">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="partial">Partial</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+        </div>
+        <div id="requestsList" class="requests-list">
+            <p class="loading">Loading requests...</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('employer');
+document.getElementById('welcomeName').textContent = localStorage.getItem('fullName') || 'Employer';
+
+const SALARY_BRACKETS = ['R0-R10k','R10k-R20k','R20k-R30k','R30k-R50k','R50k-R80k','R80k-R120k','R120k+'];
+let queryCount = 0;
+
+function addQuery() {
+    queryCount++;
+    const container = document.getElementById('queryItems');
+    const div = document.createElement('div');
+    div.className = 'query-row';
+    div.id = `query-${queryCount}`;
+    div.innerHTML = `
+        <div class="query-row-header">
+            <strong>Query ${queryCount}</strong>
+            <button type="button" class="btn btn-danger btn-xs" onclick="removeQuery(${queryCount})">Remove</button>
+        </div>
+        <div class="form-group">
+            <label>Query Type</label>
+            <select onchange="updateParams(${queryCount}, this.value)" class="query-type-select" data-qid="${queryCount}">
+                <option value="">Select a query type...</option>
+                <option value="id_verification">ID Verification</option>
+                <option value="employment_check">Employment Check</option>
+                <option value="employment_period">Employment Period</option>
+                <option value="salary_bracket">Salary Bracket</option>
+                <option value="qualification_check">Qualification Check</option>
+                <option value="criminal_record_check">Criminal Record Check</option>
+                <option value="interpol_check">Interpol / International Wanted</option>
+                <option value="credit_check">Credit Check</option>
+                <option value="drivers_licence_check">Driver's Licence Check</option>
+                <option value="professional_registration_check">Professional Registration</option>
+                <option value="address_verification">Address Verification</option>
+                <option value="reference_check">Reference Check</option>
+            </select>
+        </div>
+        <div class="query-params" id="params-${queryCount}"></div>
+    `;
+    container.appendChild(div);
+}
+
+function removeQuery(id) { document.getElementById(`query-${id}`)?.remove(); }
+
+function updateParams(qid, type) {
+    const p = document.getElementById(`params-${qid}`);
+    const t = {
+        id_verification: '<p class="hint">No additional parameters needed.</p>',
+        criminal_record_check: '<p class="hint">Checks for uncleared criminal records.</p>',
+        interpol_check: '<p class="hint">Checks Interpol wanted status.</p>',
+        employment_check: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery" required></div>`,
+        employment_period: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery" required></div><div class="form-row"><div class="form-group"><label>Start Year</label><input type="number" class="param-input" data-qid="${qid}" data-param="start_year" placeholder="2019" required></div><div class="form-group"><label>End Year</label><input type="number" class="param-input" data-qid="${qid}" data-param="end_year" placeholder="2023" required></div></div>`,
+        salary_bracket: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery" required></div><div class="form-group"><label>Salary Bracket</label><select class="param-input" data-qid="${qid}" data-param="bracket" required><option value="">Select bracket...</option>${SALARY_BRACKETS.map(b => `<option value="${b}">${b}</option>`).join('')}</select></div>`,
+        qualification_check: `<div class="form-group"><label>Qualification Type</label><input type="text" class="param-input" data-qid="${qid}" data-param="qualification_type" placeholder="e.g. BSc" required></div><div class="form-group"><label>Institution</label><input type="text" class="param-input" data-qid="${qid}" data-param="institution" placeholder="e.g. UCT" required></div>`,
+        credit_check: `<div class="form-group"><label>Minimum Credit Band</label><select class="param-input" data-qid="${qid}" data-param="minimum_band"><option value="">Any (no defaults/judgements)</option><option value="fair">Fair</option><option value="good">Good</option><option value="excellent">Excellent</option></select></div>`,
+        drivers_licence_check: `<div class="form-group"><label>Licence Code (optional)</label><input type="text" class="param-input" data-qid="${qid}" data-param="licence_code" placeholder="e.g. B, C, EB"></div>`,
+        professional_registration_check: `<div class="form-group"><label>Professional Body</label><input type="text" class="param-input" data-qid="${qid}" data-param="body_name" placeholder="e.g. ECSA, HPCSA, SAICA"></div>`,
+        address_verification: `<div class="form-row"><div class="form-group"><label>City</label><input type="text" class="param-input" data-qid="${qid}" data-param="city" placeholder="e.g. Johannesburg"></div><div class="form-group"><label>Province</label><input type="text" class="param-input" data-qid="${qid}" data-param="province" placeholder="e.g. Gauteng"></div></div>`,
+        reference_check: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery"></div>`,
+    };
+    p.innerHTML = t[type] || '';
+}
+
+async function submitVerification(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    const candidateId = document.getElementById('candidateId').value.trim();
+    const reason = document.getElementById('verifyReason').value.trim();
+    const queryRows = document.querySelectorAll('.query-row');
+    if (!queryRows.length) { showAlert('Add at least one query.', 'error'); btn.disabled = false; return; }
+    const items = []; let valid = true;
+    queryRows.forEach(row => {
+        const sel = row.querySelector('.query-type-select');
+        if (!sel?.value) { valid = false; return; }
+        const params = {};
+        row.querySelectorAll('.param-input').forEach(inp => { params[inp.dataset.param] = inp.value; });
+        items.push({query_type: sel.value, query_params: params});
+    });
+    if (!valid) { showAlert('Select a query type for all queries.', 'error'); btn.disabled = false; return; }
+    try {
+        await apiPost('/api/employer/verify', { candidate_id_number: candidateId, items, reason: reason || null });
+        showAlert('Verification request submitted!', 'success');
+        document.getElementById('verifyForm').reset();
+        document.getElementById('queryItems').innerHTML = '';
+        queryCount = 0;
+        addQuery();
+        loadRequests();
+    } catch (err) { showAlert(err.message || 'Failed.', 'error'); }
+    finally { btn.disabled = false; }
+}
+
+function maskId(id) { return id && id.length >= 6 ? id.substring(0, 6) + '*'.repeat(id.length - 6) : id; }
+
+async function loadRequests() {
+    const container = document.getElementById('requestsList');
+    const search = document.getElementById('searchInput').value.trim();
+    const statusF = document.getElementById('statusFilter').value;
+    let url = '/api/employer/requests?';
+    if (search) url += `search=${encodeURIComponent(search)}&`;
+    if (statusF) url += `status_filter=${statusF}&`;
+    try {
+        const data = await apiGet(url);
+        if (!data.length) { container.innerHTML = '<p class="empty-state">No requests found.</p>'; return; }
+        container.innerHTML = data.map(req => `
+            <div class="request-card ${req.status}">
+                <div class="request-header">
+                    <span class="request-id">#${req.id}</span>
+                    <span class="status-badge status-${req.status}">${req.status}</span>
+                </div>
+                <div class="request-body">
+                    <p><strong>Candidate ID:</strong> ${maskId(req.candidate_id_number)}</p>
+                    <p><strong>Reason:</strong> ${req.reason || 'Not specified'}</p>
+                    <p><strong>Items:</strong> ${req.items.length} queries</p>
+                    <p><strong>Submitted:</strong> ${formatDate(req.created_at)}</p>
+                </div>
+                <div class="request-actions">
+                    <a href="/employer/request/${req.id}" class="btn btn-primary btn-sm">View Details</a>
+                </div>
+            </div>
+        `).join('');
+    } catch { container.innerHTML = '<p class="error">Failed to load requests.</p>'; }
+}
+
+async function loadNotifCount() {
+    try {
+        const data = await apiGet('/api/employer/notifications/unread-count');
+        const badge = document.getElementById('notifBadge');
+        if (data.unread_count > 0) { badge.textContent = data.unread_count; badge.style.display = 'inline-block'; }
+    } catch {}
+}
+
+addQuery();
+loadRequests();
+loadNotifCount();
+</script>
+{% endblock %}

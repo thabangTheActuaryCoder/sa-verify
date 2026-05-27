@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Register - SA Verify{% endblock %}
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h1>Register</h1>
+        <p class="subtitle">Create a candidate account</p>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="idNumber">SA ID Number</label>
+                <input type="text" id="idNumber" required placeholder="13-digit SA ID" maxlength="13" pattern="\d{13}">
+            </div>
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" required placeholder="Your full name">
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required placeholder="Choose a username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required placeholder="Choose a password" minlength="6">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="regBtn">Register</button>
+        </form>
+        <p style="margin-top:1rem;text-align:center;"><a href="/login">Already have an account? Log in</a></p>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function handleRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('regBtn');
+    btn.disabled = true;
+    try {
+        const resp = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                id_number: document.getElementById('idNumber').value,
+                full_name: document.getElementById('fullName').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+            })
+        });
+        const data = await resp.json();
+        if (!resp.ok) { showAlert(data.detail || 'Registration failed', 'error'); return; }
+        showAlert('Registration successful! Redirecting to login...', 'success');
+        setTimeout(() => window.location.href = '/login', 1500);
+    } catch { showAlert('Network error', 'error'); }
+    finally { btn.disabled = false; }
+}
+</script>
+{% endblock %}

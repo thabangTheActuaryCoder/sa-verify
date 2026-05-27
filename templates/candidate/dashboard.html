@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Candidate Dashboard - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Candidate Dashboard</h1>
+    <p class="welcome">Welcome, <span id="welcomeName"></span></p>
+
+    <nav class="sub-nav">
+        <a href="/candidate/dashboard" class="sub-nav-link active">Requests</a>
+        <a href="/candidate/profile" class="sub-nav-link">My Profile</a>
+        <a href="/candidate/history" class="sub-nav-link">Full History</a>
+        <a href="/candidate/disputes" class="sub-nav-link">Disputes</a>
+        <a href="/candidate/blocked" class="sub-nav-link">Blocked Companies</a>
+        <a href="/candidate/documents" class="sub-nav-link">Documents</a>
+        <a href="/candidate/notifications" class="sub-nav-link">Notifications <span id="notifBadge" class="notif-badge" style="display:none;"></span></a>
+    </nav>
+
+    <section class="section">
+        <h2>Verification Requests</h2>
+        <p class="section-desc">Review and respond to verification queries from employers.</p>
+        <div id="requestsList" class="requests-list">
+            <p class="loading">Loading requests...</p>
+        </div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+document.getElementById('welcomeName').textContent = localStorage.getItem('fullName') || 'Candidate';
+
+async function loadRequests() {
+    const container = document.getElementById('requestsList');
+    try {
+        const data = await apiGet('/api/candidate/requests');
+        if (data.length === 0) {
+            container.innerHTML = '<p class="empty-state">No verification requests yet.</p>';
+            return;
+        }
+        container.innerHTML = data.map(req => `
+            <div class="request-card ${req.status}">
+                <div class="request-header">
+                    <span class="request-id">#${req.id}</span>
+                    <span class="status-badge status-${req.status}">${req.status}</span>
+                </div>
+                <div class="request-body">
+                    <p><strong>From:</strong> ${req.employer_name || 'Unknown Employer'}</p>
+                    <p><strong>Reason:</strong> ${req.reason || 'Not specified'}</p>
+                    <p><strong>Items:</strong> ${req.items.length} queries</p>
+                    <p><strong>Pending:</strong> ${req.items.filter(i => i.consent_status === 'pending').length} items</p>
+                    <p><strong>Submitted:</strong> ${formatDate(req.created_at)}</p>
+                </div>
+                <div class="request-actions">
+                    <a href="/candidate/request/${req.id}" class="btn btn-primary btn-sm">
+                        ${req.status === 'pending' || req.status === 'partial' ? 'Review & Respond' : 'View Details'}
+                    </a>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load requests.</p>';
+    }
+}
+
+async function loadNotifCount() {
+    try {
+        const data = await apiGet('/api/candidate/notifications/unread-count');
+        const badge = document.getElementById('notifBadge');
+        if (data.unread_count > 0) {
+            badge.textContent = data.unread_count;
+            badge.style.display = 'inline-block';
+        }
+    } catch {}
+}
+
+loadRequests();
+loadNotifCount();
+</script>
+{% endblock %}

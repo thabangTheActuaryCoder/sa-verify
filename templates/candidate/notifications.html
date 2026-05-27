@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Notifications - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Notifications</h1>
+    <div id="notifList"><p class="loading">Loading...</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadNotifs() {
+    const container = document.getElementById('notifList');
+    try {
+        const notifs = await apiGet('/api/candidate/notifications');
+        if (!notifs.length) { container.innerHTML = '<p class="empty-state">No notifications.</p>'; return; }
+        container.innerHTML = notifs.map(n => `
+            <div class="request-card ${n.is_read ? '' : 'pending'}" style="cursor:pointer;" onclick="markRead(${n.id}, '${n.link || ''}')">
+                <div class="request-header">
+                    <span class="request-id">${n.title}</span>
+                    ${!n.is_read ? '<span class="status-badge status-pending">NEW</span>' : ''}
+                </div>
+                <div class="request-body">
+                    <p>${n.message}</p>
+                    <p style="font-size:0.8rem;color:var(--text-light);">${formatDate(n.created_at)}</p>
+                </div>
+            </div>
+        `).join('');
+    } catch { container.innerHTML = '<p class="error">Failed to load notifications.</p>'; }
+}
+
+async function markRead(id, link) {
+    try {
+        await apiPost(`/api/candidate/notifications/${id}/read`, {});
+    } catch {}
+    if (link) window.location.href = link;
+    else loadNotifs();
+}
+
+loadNotifs();
+</script>
+{% endblock %}

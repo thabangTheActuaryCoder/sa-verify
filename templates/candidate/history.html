@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Verification History - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Verification History</h1>
+    <p class="section-desc">Complete log of every verification query made about you, across all employers.</p>
+    <div id="historyContent"><p class="loading">Loading...</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadHistory() {
+    const container = document.getElementById('historyContent');
+    try {
+        const history = await apiGet('/api/candidate/history');
+        if (!history.length) { container.innerHTML = '<p class="empty-state">No verification history.</p>'; return; }
+        container.innerHTML = `<table class="data-table"><thead><tr>
+            <th>Req #</th><th>Employer</th><th>Reason</th><th>Query Type</th><th>Your Decision</th><th>Result</th><th>Date</th>
+        </tr></thead><tbody>
+            ${history.map(h => `<tr>
+                <td>#${h.request_id}</td>
+                <td>${h.employer_name || 'N/A'}</td>
+                <td>${h.reason || 'Not specified'}</td>
+                <td>${h.query_type.replace(/_/g, ' ')}</td>
+                <td><span class="consent-badge consent-${h.consent_status}">${h.consent_status}</span></td>
+                <td>${h.result || '-'}</td>
+                <td>${formatDate(h.created_at)}</td>
+            </tr>`).join('')}
+        </tbody></table>`;
+    } catch { container.innerHTML = '<p class="error">Failed to load history.</p>'; }
+}
+
+loadHistory();
+</script>
+{% endblock %}

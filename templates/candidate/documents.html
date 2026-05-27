@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Documents - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>My Documents</h1>
+    <p class="section-desc">Upload supporting documents (payslips, certificates, ID copies) that can be referenced in dispute submissions.</p>
+
+    <section class="section">
+        <h2>Upload Document</h2>
+        <form id="uploadForm" onsubmit="uploadDoc(event)" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Document Type</label>
+                    <select id="docType" required>
+                        <option value="">Select type...</option>
+                        <option value="payslip">Payslip</option>
+                        <option value="degree_certificate">Degree Certificate</option>
+                        <option value="id_copy">ID Copy</option>
+                        <option value="drivers_licence_copy">Driver's Licence Copy</option>
+                        <option value="reference_letter">Reference Letter</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>File</label>
+                    <input type="file" id="docFile" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
+    </section>
+
+    <section class="section">
+        <h2>Uploaded Documents</h2>
+        <div id="docsList"><p class="loading">Loading...</p></div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadDocs() {
+    const container = document.getElementById('docsList');
+    try {
+        const docs = await apiGet('/api/candidate/documents');
+        if (!docs.length) { container.innerHTML = '<p class="empty-state">No documents uploaded.</p>'; return; }
+        container.innerHTML = `<table class="data-table"><thead><tr><th>Filename</th><th>Type</th><th>Uploaded</th></tr></thead><tbody>
+            ${docs.map(d => `<tr><td>${d.filename}</td><td>${d.document_type}</td><td>${formatDate(d.uploaded_at)}</td></tr>`).join('')}
+        </tbody></table>`;
+    } catch { container.innerHTML = '<p class="error">Failed to load documents.</p>'; }
+}
+
+async function uploadDoc(e) {
+    e.preventDefault();
+    const form = new FormData();
+    form.append('file', document.getElementById('docFile').files[0]);
+    const docType = document.getElementById('docType').value;
+
+    try {
+        const resp = await fetch(`/api/candidate/documents?document_type=${encodeURIComponent(docType)}`, {
+            method: 'POST',
+            headers: {'Authorization': `Bearer ${getToken()}`},
+            body: form,
+        });
+        if (!resp.ok) { const err = await resp.json(); throw new Error(err.detail); }
+        showAlert('Document uploaded.', 'success');
+        document.getElementById('uploadForm').reset();
+        loadDocs();
+    } catch (err) { showAlert(err.message || 'Upload failed.', 'error'); }
+}
+
+loadDocs();
+</script>
+{% endblock %}

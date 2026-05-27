@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Request - SA Verify{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <a href="/candidate/dashboard" class="back-link">Back to Dashboard</a>
+    <h1>Verification Request #{{ request_id }}</h1>
+
+    <div id="requestDetail" class="request-detail">
+        <p class="loading">Loading request details...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+const REQUEST_ID = {{ request_id }};
+
+const QUERY_TYPE_LABELS = {
+    'id_verification': 'ID Verification',
+    'employment_check': 'Employment Check',
+    'employment_period': 'Employment Period',
+    'salary_bracket': 'Salary Bracket',
+    'qualification_check': 'Qualification Check'
+};
+
+function describeQuery(item) {
+    const params = JSON.parse(item.query_params);
+    switch (item.query_type) {
+        case 'id_verification':
+            return 'Is the candidate\'s SA ID valid and active?';
+        case 'employment_check':
+            return `Was the candidate employed at ${params.company_name || 'N/A'}?`;
+        case 'employment_period':
+            return `Was the candidate employed at ${params.company_name || 'N/A'} from ${params.start_year} to ${params.end_year}?`;
+        case 'salary_bracket':
+            return `Was the candidate\'s salary in the ${params.bracket || 'N/A'} bracket at ${params.company_name || 'N/A'}?`;
+        case 'qualification_check':
+            return `Does the candidate hold a ${params.qualification_type || 'N/A'} from ${params.institution || 'N/A'}?`;
+        default:
+            return item.query_type;
+    }
+}
+
+async function loadRequest() {
+    const container = document.getElementById('requestDetail');
+    try {
+        const req = await apiGet(`/api/candidate/requests/${REQUEST_ID}`);
+
+        const hasPending = req.items.some(i => i.consent_status === 'pending');
+
+        container.innerHTML = `
+            <div class="detail-header">
+                <div>
+                    <p><strong>From:</strong> ${req.employer_name || 'Unknown Employer'}</p>
+                    <p><strong>Status:</strong> <span class="status-badge status-${req.status}">${req.status}</span></p>
+                    <p><strong>Submitted:</strong> ${formatDate(req.created_at)}</p>
+                </div>
+            </div>
+
+            <h2>Query Items</h2>
+            <p class="section-desc">Approve or decline each query individually. Only approved items will be evaluated.</p>
+
+            <div class="items-list">
+                ${req.items.map(item => `
+                    <div class="query-item ${item.consent_status}" data-item-id="${item.id}">
+                        <div class="query-info">
+                            <span class="query-type">${QUERY_TYPE_LABELS[item.query_type] || item.query_type}</span>
+                            <p class="query-desc">${describeQuery(item)}</p>
+                        </div>
+                        <div class="query-status">
+                            ${item.consent_status === 'pending' ? `
+                                <button class="btn btn-success btn-sm" onclick="decide(${item.id}, 'approved')">Approve</button>
+                                <button class="btn btn-danger btn-sm" onclick="decide(${item.id}, 'declined')">Decline</button>
+                            ` : `
+                                <span class="consent-badge consent-${item.consent_status}">${item.consent_status}</span>
+                                ${item.result ? `<span class="result-badge">${item.result}</span>` : ''}
+                            `}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            ${hasPending ? `
+                <div class="bulk-actions">
+                    <button class="btn btn-success" onclick="bulkDecide('approved')">Approve All Pending</button>
+                    <button class="btn btn-danger" onclick="bulkDecide('declined')">Decline All Pending</button>
+                </div>
+            ` : ''}
+        `;
+    } catch (err) {
+        container.innerHTML = '<p class="error">Failed to load request details.</p>';
+    }
+}
+
+async function decide(itemId, decision) {
+    try {
+        await apiPost('/api/candidate/consent', {
+            decisions: [{item_id: itemId, decision}]
+        });
+        showAlert(`Item ${decision} successfully.`, 'success');
+        loadRequest();
+    } catch (err) {
+        showAlert('Failed to process consent.', 'error');
+    }
+}
+
+async function bulkDecide(decision) {
+    const pendingItems = document.querySelectorAll('.query-item.pending');
+    const decisions = Array.from(pendingItems).map(el => ({
+        item_id: parseInt(el.dataset.itemId),
+        decision
+    }));
+
+    if (decisions.length === 0) return;
+
+    try {
+        await apiPost('/api/candidate/consent', {decisions});
+        showAlert(`All pending items ${decision} successfully.`, 'success');
+        loadRequest();
+    } catch (err) {
+        showAlert('Failed to process consent.', 'error');
+    }
+}
+
+loadRequest();
+</script>
+{% endblock %}

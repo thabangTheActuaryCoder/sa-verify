@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Request Details - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <a href="/employer/dashboard" class="back-link">Back to Dashboard</a>
+    <h1>Verification Request #{{ request_id }}</h1>
+    <div id="requestDetail" class="request-detail"><p class="loading">Loading...</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('employer');
+const REQUEST_ID = {{ request_id }};
+const LABELS = {
+    id_verification:'ID Verification', employment_check:'Employment Check',
+    employment_period:'Employment Period', salary_bracket:'Salary Bracket',
+    qualification_check:'Qualification Check', criminal_record_check:'Criminal Record Check',
+    interpol_check:'Interpol / International Wanted', credit_check:'Credit Check',
+    drivers_licence_check:"Driver's Licence Check",
+    professional_registration_check:'Professional Registration',
+    address_verification:'Address Verification', reference_check:'Reference Check'
+};
+function describeQuery(item) {
+    const p = JSON.parse(item.query_params);
+    const t = {
+        id_verification: () => "Is the candidate's SA ID valid and active?",
+        employment_check: () => `Employed at ${p.company_name || 'N/A'}?`,
+        employment_period: () => `Employed at ${p.company_name} from ${p.start_year} to ${p.end_year}?`,
+        salary_bracket: () => `Salary in ${p.bracket} at ${p.company_name}?`,
+        qualification_check: () => `Holds ${p.qualification_type} from ${p.institution}?`,
+        criminal_record_check: () => 'Has uncleared criminal records?',
+        interpol_check: () => 'Wanted by Interpol?',
+        credit_check: () => p.minimum_band ? `Credit band at least ${p.minimum_band}?` : 'No defaults or judgements?',
+        drivers_licence_check: () => p.licence_code ? `Has valid ${p.licence_code} licence?` : 'Has valid driver\'s licence?',
+        professional_registration_check: () => `Registered with ${p.body_name}?`,
+        address_verification: () => `Lives in ${[p.city, p.province].filter(Boolean).join(', ')}?`,
+        reference_check: () => `Has verified reference from ${p.company_name}?`,
+    };
+    return (t[item.query_type] || (() => item.query_type))();
+}
+function maskId(id) { return id && id.length >= 6 ? id.substring(0, 6) + '*'.repeat(id.length - 6) : id; }
+
+async function loadRequest() {
+    const c = document.getElementById('requestDetail');
+    try {
+        const req = await apiGet(`/api/employer/requests/${REQUEST_ID}`);
+        c.innerHTML = `
+            <div class="detail-header">
+                <p><strong>Candidate ID:</strong> ${maskId(req.candidate_id_number)}</p>
+                <p><strong>Reason:</strong> ${req.reason || 'Not specified'}</p>
+                <p><strong>Status:</strong> <span class="status-badge status-${req.status}">${req.status}</span></p>
+                <p><strong>Submitted:</strong> ${formatDate(req.created_at)}</p>
+                <p><strong>Last Updated:</strong> ${formatDate(req.updated_at)}</p>
+            </div>
+            <h2>Query Results</h2>
+            <div class="items-list">
+                ${req.items.map(item => `
+                    <div class="query-item ${item.consent_status}">
+                        <div class="query-info">
+                            <span class="query-type">${LABELS[item.query_type] || item.query_type}</span>
+                            <p class="query-desc">${describeQuery(item)}</p>
+                        </div>
+                        <div class="query-result">
+                            ${item.consent_status === 'pending' ? '<span class="consent-badge consent-pending">Awaiting Consent</span>' :
+                              item.consent_status === 'declined' ? '<span class="consent-badge consent-declined">Consent Declined</span>' :
+                              `<span class="result-badge result-${(item.result||'').toLowerCase()}">${item.result || 'N/A'}</span>`}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+            ${req.status === 'pending' || req.status === 'partial' ? '<div class="info-box"><p>Some items are still awaiting candidate consent.</p></div>' : ''}
+            <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+                <button class="btn btn-outline" onclick="loadRequest()">Refresh</button>
+                <button class="btn btn-primary" onclick="downloadReport()">Download Report</button>
+            </div>
+        `;
+    } catch { c.innerHTML = '<p class="error">Failed to load.</p>'; }
+}
+
+function downloadReport() {
+    const token = getToken();
+    window.open(`/api/employer/requests/${REQUEST_ID}/report?token=${token}`, '_blank');
+    // Fallback: use fetch
+    fetch(`/api/employer/requests/${REQUEST_ID}/report`, {
+        headers: {'Authorization': `Bearer ${token}`}
+    }).then(resp => resp.blob()).then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `verification_report_${REQUEST_ID}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }).catch(() => showAlert('Download failed.', 'error'));
+}
+
+loadRequest();
+// Auto-refresh every 15 seconds
+setInterval(loadRequest, 15000);
+</script>
+{% endblock %}

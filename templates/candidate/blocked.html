@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Blocked Companies - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>Blocked Companies</h1>
+    <p class="section-desc">Companies you have blocked cannot submit verification requests about you.</p>
+
+    <section class="section">
+        <h2>Block a Company</h2>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Select Company</label>
+                <select id="companySelect"><option value="">Loading companies...</option></select>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;">
+                <button class="btn btn-danger" onclick="blockCompany()">Block Company</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Currently Blocked</h2>
+        <div id="blockedList"><p class="loading">Loading...</p></div>
+    </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadCompanies() {
+    try {
+        // Use the admin companies endpoint indirectly - we'll fetch from a public list
+        // For prototype, we fetch all companies via a candidate-accessible approach
+        const resp = await fetch('/api/candidate/blocked-companies', {
+            headers: {'Authorization': `Bearer ${getToken()}`}
+        });
+        // Load companies from the blocked list context - we need a companies list
+        // We'll populate from the blocked list and a simple approach
+    } catch {}
+}
+
+async function loadBlocked() {
+    const container = document.getElementById('blockedList');
+    try {
+        const blocked = await apiGet('/api/candidate/blocked-companies');
+        if (!blocked.length) { container.innerHTML = '<p class="empty-state">No companies blocked.</p>'; return; }
+        container.innerHTML = `<table class="data-table"><thead><tr><th>Company</th><th>Blocked Since</th><th>Action</th></tr></thead><tbody>
+            ${blocked.map(b => `<tr><td>${b.company_name}</td><td>${formatDate(b.blocked_at)}</td><td><button class="btn btn-outline btn-xs" onclick="unblock(${b.id})">Unblock</button></td></tr>`).join('')}
+        </tbody></table>`;
+    } catch { container.innerHTML = '<p class="error">Failed to load blocked companies.</p>'; }
+}
+
+async function blockCompany() {
+    const id = document.getElementById('companySelect').value;
+    if (!id) { showAlert('Select a company first.', 'error'); return; }
+    try {
+        await apiPost('/api/candidate/blocked-companies', {company_id: parseInt(id)});
+        showAlert('Company blocked.', 'success');
+        loadBlocked();
+    } catch (err) { showAlert(err.message || 'Failed to block.', 'error'); }
+}
+
+async function unblock(blockId) {
+    try {
+        const resp = await fetch(`/api/candidate/blocked-companies/${blockId}`, {
+            method: 'DELETE',
+            headers: {'Authorization': `Bearer ${getToken()}`}
+        });
+        if (!resp.ok) throw new Error();
+        showAlert('Company unblocked.', 'success');
+        loadBlocked();
+    } catch { showAlert('Failed to unblock.', 'error'); }
+}
+
+async function loadCompanyDropdown() {
+    try {
+        const companies = await apiGet('/api/candidate/companies');
+        const sel = document.getElementById('companySelect');
+        sel.innerHTML = '<option value="">Select a company...</option>' +
+            companies.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    } catch {
+        document.getElementById('companySelect').innerHTML = '<option value="">Could not load companies</option>';
+    }
+}
+
+loadCompanyDropdown();
+loadBlocked();
+</script>
+{% endblock %}

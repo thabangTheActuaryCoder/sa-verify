@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Bulk Verification - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <a href="/employer/dashboard" class="back-link">Back to Dashboard</a>
+    <h1>Bulk Verification</h1>
+    <p class="section-desc">Submit the same set of queries for multiple candidates at once.</p>
+
+    <form id="bulkForm" onsubmit="submitBulk(event)">
+        <div class="form-group">
+            <label>Reason for Verification</label>
+            <input type="text" id="bulkReason" placeholder="e.g. Graduate intake background checks">
+        </div>
+
+        <div class="form-group">
+            <label>Candidate ID Numbers (one per line)</label>
+            <textarea id="bulkIds" rows="6" required placeholder="Enter 13-digit SA ID numbers, one per line"></textarea>
+        </div>
+
+        <div class="query-builder">
+            <h3>Queries (applied to all candidates)</h3>
+            <div id="queryItems"></div>
+            <button type="button" class="btn btn-outline btn-sm" onclick="addQuery()">+ Add Query</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="bulkBtn">Submit Bulk Verification</button>
+    </form>
+
+    <div id="bulkResults" style="display:none; margin-top:1.5rem;"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('employer');
+
+const SALARY_BRACKETS = ['R0-R10k','R10k-R20k','R20k-R30k','R30k-R50k','R50k-R80k','R80k-R120k','R120k+'];
+let queryCount = 0;
+
+function addQuery() {
+    queryCount++;
+    const container = document.getElementById('queryItems');
+    const div = document.createElement('div');
+    div.className = 'query-row';
+    div.id = `query-${queryCount}`;
+    div.innerHTML = `
+        <div class="query-row-header">
+            <strong>Query ${queryCount}</strong>
+            <button type="button" class="btn btn-danger btn-xs" onclick="removeQuery(${queryCount})">Remove</button>
+        </div>
+        <div class="form-group">
+            <label>Query Type</label>
+            <select onchange="updateParams(${queryCount}, this.value)" class="query-type-select" data-qid="${queryCount}">
+                <option value="">Select type...</option>
+                <option value="id_verification">ID Verification</option>
+                <option value="employment_check">Employment Check</option>
+                <option value="criminal_record_check">Criminal Record Check</option>
+                <option value="credit_check">Credit Check</option>
+                <option value="drivers_licence_check">Driver's Licence Check</option>
+                <option value="qualification_check">Qualification Check</option>
+                <option value="professional_registration_check">Professional Registration</option>
+                <option value="address_verification">Address Verification</option>
+                <option value="reference_check">Reference Check</option>
+                <option value="interpol_check">Interpol / International Wanted</option>
+            </select>
+        </div>
+        <div class="query-params" id="params-${queryCount}"></div>
+    `;
+    container.appendChild(div);
+}
+
+function removeQuery(id) { document.getElementById(`query-${id}`)?.remove(); }
+
+function updateParams(qid, type) {
+    const p = document.getElementById(`params-${qid}`);
+    const templates = {
+        id_verification: '<p class="hint">No additional parameters needed.</p>',
+        criminal_record_check: '<p class="hint">Checks if candidate has uncleared criminal records.</p>',
+        interpol_check: '<p class="hint">Checks if candidate is wanted by Interpol.</p>',
+        employment_check: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery"></div>`,
+        credit_check: `<div class="form-group"><label>Minimum Credit Band</label><select class="param-input" data-qid="${qid}" data-param="minimum_band"><option value="">Any (no defaults/judgements)</option><option value="fair">Fair</option><option value="good">Good</option><option value="excellent">Excellent</option></select></div>`,
+        drivers_licence_check: `<div class="form-group"><label>Licence Code (optional)</label><input type="text" class="param-input" data-qid="${qid}" data-param="licence_code" placeholder="e.g. B, C, EB"></div>`,
+        qualification_check: `<div class="form-group"><label>Qualification Type</label><input type="text" class="param-input" data-qid="${qid}" data-param="qualification_type" placeholder="e.g. BSc"></div><div class="form-group"><label>Institution</label><input type="text" class="param-input" data-qid="${qid}" data-param="institution" placeholder="e.g. UCT"></div>`,
+        professional_registration_check: `<div class="form-group"><label>Professional Body</label><input type="text" class="param-input" data-qid="${qid}" data-param="body_name" placeholder="e.g. ECSA, HPCSA, SAICA"></div>`,
+        address_verification: `<div class="form-row"><div class="form-group"><label>City</label><input type="text" class="param-input" data-qid="${qid}" data-param="city" placeholder="e.g. Johannesburg"></div><div class="form-group"><label>Province</label><input type="text" class="param-input" data-qid="${qid}" data-param="province" placeholder="e.g. Gauteng"></div></div>`,
+        reference_check: `<div class="form-group"><label>Company Name</label><input type="text" class="param-input" data-qid="${qid}" data-param="company_name" placeholder="e.g. Discovery"></div>`,
+    };
+    p.innerHTML = templates[type] || '';
+}
+
+async function submitBulk(e) {
+    e.preventDefault();
+    const btn = document.getElementById('bulkBtn');
+    btn.disabled = true;
+
+    const ids = document.getElementById('bulkIds').value.trim().split('\n').map(s => s.trim()).filter(Boolean);
+    const reason = document.getElementById('bulkReason').value.trim();
+    const queryRows = document.querySelectorAll('.query-row');
+
+    if (!queryRows.length) { showAlert('Add at least one query.', 'error'); btn.disabled = false; return; }
+
+    const items = [];
+    let valid = true;
+    queryRows.forEach(row => {
+        const select = row.querySelector('.query-type-select');
+        if (!select?.value) { valid = false; return; }
+        const params = {};
+        row.querySelectorAll('.param-input').forEach(inp => { params[inp.dataset.param] = inp.value; });
+        items.push({query_type: select.value, query_params: params});
+    });
+    if (!valid) { showAlert('Select a type for all queries.', 'error'); btn.disabled = false; return; }
+
+    try {
+        const data = await apiPost('/api/employer/verify-bulk', {
+            candidate_id_numbers: ids, items, reason: reason || null
+        });
+        const results = document.getElementById('bulkResults');
+        results.style.display = 'block';
+        results.innerHTML = `
+            <div class="info-box">
+                <h3>${data.message}</h3>
+                ${data.submitted.map(s => `<p>ID ${s.id_number} - Request #${s.request_id}</p>`).join('')}
+                ${data.errors.map(e => `<p style="color:var(--danger);">ID ${e.id_number} - ${e.error}</p>`).join('')}
+            </div>`;
+        showAlert(data.message, 'success');
+    } catch (err) { showAlert(err.message || 'Failed.', 'error'); }
+    finally { btn.disabled = false; }
+}
+
+addQuery();
+</script>
+{% endblock %}

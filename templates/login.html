@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Login - SA Verify{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <h1>SA Verify</h1>
+        <p class="subtitle">National Verification System</p>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required
+                       placeholder="Enter your username" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required
+                       placeholder="Enter your password" autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                Log In
+            </button>
+        </form>
+
+        <p style="margin-top:1rem;text-align:center;"><a href="/register">Don't have an account? Register as a candidate</a></p>
+
+        <div class="login-help">
+            <h3>Demo Accounts</h3>
+            <table class="demo-table">
+                <thead>
+                    <tr><th>Role</th><th>Username</th><th>Password</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Candidate</td><td>thabo.candidate</td><td>Demo@1234</td></tr>
+                    <tr><td>Candidate</td><td>naledi.candidate</td><td>Demo@1234</td></tr>
+                    <tr><td>Candidate</td><td>sipho.candidate</td><td>Demo@1234</td></tr>
+                    <tr><td>Employer</td><td>hr.discovery</td><td>Demo@1234</td></tr>
+                    <tr><td>Employer</td><td>hr.standardbank</td><td>Demo@1234</td></tr>
+                    <tr><td>Admin</td><td>admin</td><td>Admin@1234</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const resp = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username, password})
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            showAlert(err.detail || 'Login failed', 'error');
+            return;
+        }
+
+        const data = await resp.json();
+        localStorage.setItem('token', data.access_token);
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('fullName', data.full_name);
+
+        if (data.role === 'candidate') {
+            window.location.href = '/candidate/dashboard';
+        } else if (data.role === 'employer') {
+            window.location.href = '/employer/dashboard';
+        } else if (data.role === 'admin') {
+            window.location.href = '/admin/dashboard';
+        }
+    } catch (err) {
+        showAlert('Network error. Please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+    }
+}
+</script>
+{% endblock %}

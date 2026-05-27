@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Disputes - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <a href="/admin/dashboard" class="back-link">Back to Dashboard</a>
+    <h1>Dispute Management</h1>
+
+    <div class="form-group" style="max-width:200px;margin-bottom:1rem;">
+        <select id="statusFilter" onchange="loadDisputes()">
+            <option value="">All statuses</option>
+            <option value="open">Open</option>
+            <option value="under_review">Under Review</option>
+            <option value="resolved">Resolved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+    </div>
+
+    <div id="disputesList"><p class="loading">Loading...</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('admin');
+
+async function loadDisputes() {
+    const c = document.getElementById('disputesList');
+    const sf = document.getElementById('statusFilter').value;
+    const url = sf ? `/api/admin/disputes?status_filter=${sf}` : '/api/admin/disputes';
+    try {
+        const disputes = await apiGet(url);
+        if (!disputes.length) { c.innerHTML = '<p class="empty-state">No disputes.</p>'; return; }
+        c.innerHTML = disputes.map(d => `
+            <div class="request-card ${d.status === 'open' ? 'pending' : d.status === 'resolved' ? 'completed' : ''}">
+                <div class="request-header">
+                    <span class="request-id">#${d.id} - ${d.dispute_type}</span>
+                    <span class="status-badge status-${d.status === 'open' ? 'pending' : d.status === 'resolved' ? 'completed' : 'partial'}">${d.status}</span>
+                </div>
+                <div class="request-body">
+                    <p><strong>Citizen:</strong> ${d.citizen_name} (${d.citizen_id_number})</p>
+                    <p><strong>Field:</strong> ${d.field_disputed}</p>
+                    <p><strong>Reason:</strong> ${d.reason}</p>
+                    <p><strong>Submitted:</strong> ${formatDate(d.created_at)}</p>
+                </div>
+                ${d.status === 'open' || d.status === 'under_review' ? `
+                <div class="request-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                    <input type="text" id="notes-${d.id}" placeholder="Resolution notes..." style="flex:1;padding:0.4rem;border:1px solid var(--border);border-radius:4px;">
+                    <button class="btn btn-info btn-sm" onclick="resolveDispute(${d.id}, 'under_review')">Review</button>
+                    <button class="btn btn-success btn-sm" onclick="resolveDispute(${d.id}, 'resolved')">Resolve</button>
+                    <button class="btn btn-danger btn-sm" onclick="resolveDispute(${d.id}, 'rejected')">Reject</button>
+                </div>` : ''}
+            </div>
+        `).join('');
+    } catch { c.innerHTML = '<p class="error">Failed to load.</p>'; }
+}
+
+async function resolveDispute(id, status) {
+    const notes = document.getElementById(`notes-${id}`)?.value || '';
+    try {
+        const resp = await fetch(`/api/admin/disputes/${id}`, {
+            method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`},
+            body: JSON.stringify({status, resolution_notes: notes})
+        });
+        if (!resp.ok) { const e = await resp.json(); throw new Error(e.detail); }
+        showAlert('Dispute updated.', 'success');
+        loadDisputes();
+    } catch (err) { showAlert(err.message || 'Failed.', 'error'); }
+}
+
+loadDisputes();
+</script>
+{% endblock %}

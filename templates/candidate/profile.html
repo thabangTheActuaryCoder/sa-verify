@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}My Profile - SA Verify{% endblock %}
+{% block content %}
+<div class="dashboard">
+    <h1>My Profile</h1>
+    <p class="section-desc">View your records as held in the SA Verify system. If anything is incorrect, you can raise a dispute.</p>
+    <div id="profileContent"><p class="loading">Loading profile...</p></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+requireAuth('candidate');
+
+async function loadProfile() {
+    const container = document.getElementById('profileContent');
+    try {
+        const p = await apiGet('/api/candidate/profile');
+        container.innerHTML = `
+            <div class="detail-header">
+                <p><strong>Name:</strong> ${p.first_name} ${p.last_name}</p>
+                <p><strong>ID Number:</strong> ${p.id_number}</p>
+                <p><strong>Date of Birth:</strong> ${p.date_of_birth}</p>
+                <p><strong>Gender:</strong> ${p.gender}</p>
+            </div>
+
+            <h2>Employment History</h2>
+            ${p.employments.length ? `<table class="data-table"><thead><tr><th>Company</th><th>Title</th><th>Period</th><th>Current</th><th>Bracket</th></tr></thead><tbody>
+                ${p.employments.map(e => `<tr><td>${e.company_name}</td><td>${e.job_title}</td><td>${e.start_date} - ${e.end_date || 'Present'}</td><td>${e.is_current ? 'Yes' : 'No'}</td><td>${e.salary_bracket}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No employment records.</p>'}
+
+            <h2>Qualifications</h2>
+            ${p.qualifications.length ? `<table class="data-table"><thead><tr><th>Type</th><th>Field</th><th>Institution</th><th>Year</th><th>Registered</th></tr></thead><tbody>
+                ${p.qualifications.map(q => `<tr><td>${q.qualification_type}</td><td>${q.field_of_study}</td><td>${q.institution}</td><td>${q.year_obtained}</td><td>${q.is_institution_registered ? 'Yes' : '<span style="color:red">No</span>'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No qualifications.</p>'}
+
+            <h2>Criminal Records</h2>
+            ${p.criminal_records.length ? `<table class="data-table"><thead><tr><th>Case</th><th>Offence</th><th>Severity</th><th>Convicted</th><th>Cleared</th><th>Interpol</th></tr></thead><tbody>
+                ${p.criminal_records.map(r => `<tr><td>${r.case_number}</td><td>${r.offence}</td><td>${r.severity}</td><td>${r.date_convicted || 'N/A'}</td><td>${r.is_cleared ? 'Yes' : 'No'}</td><td>${r.is_interpol_wanted ? '<span style="color:red">WANTED</span>' : 'No'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No criminal records.</p>'}
+
+            <h2>Credit Record</h2>
+            ${p.credit_records.length ? p.credit_records.map(c => `
+                <div class="detail-header">
+                    <p><strong>Score:</strong> ${c.credit_score} (${c.credit_score_band})</p>
+                    <p><strong>Defaults:</strong> ${c.has_defaults ? 'Yes' : 'No'} | <strong>Judgements:</strong> ${c.has_judgements ? 'Yes' : 'No'} | <strong>Insolvency:</strong> ${c.has_insolvency ? 'Yes' : 'No'}</p>
+                    <p><strong>Accounts:</strong> ${c.accounts_in_good_standing}/${c.total_accounts} in good standing</p>
+                </div>
+            `).join('') : '<p class="empty-state">No credit record.</p>'}
+
+            <h2>Driver's Licences</h2>
+            ${p.drivers_licences.length ? `<table class="data-table"><thead><tr><th>Number</th><th>Code</th><th>Issued</th><th>Expiry</th><th>Valid</th><th>Restrictions</th></tr></thead><tbody>
+                ${p.drivers_licences.map(l => `<tr><td>${l.licence_number}</td><td>${l.licence_code}</td><td>${l.issue_date}</td><td>${l.expiry_date}</td><td>${l.is_valid ? 'Yes' : 'No'}</td><td>${l.restrictions || 'None'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No driver\'s licence records.</p>'}
+
+            <h2>Professional Registrations</h2>
+            ${p.professional_registrations.length ? `<table class="data-table"><thead><tr><th>Body</th><th>Designation</th><th>Reg No.</th><th>Active</th><th>Good Standing</th></tr></thead><tbody>
+                ${p.professional_registrations.map(r => `<tr><td>${r.body_name}</td><td>${r.designation}</td><td>${r.registration_number}</td><td>${r.is_active ? 'Yes' : 'No'}</td><td>${r.is_in_good_standing ? 'Yes' : 'No'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No professional registrations.</p>'}
+
+            <h2>Addresses</h2>
+            ${p.addresses.length ? `<table class="data-table"><thead><tr><th>Type</th><th>Address</th><th>City</th><th>Province</th><th>Code</th><th>Current</th></tr></thead><tbody>
+                ${p.addresses.map(a => `<tr><td>${a.address_type}</td><td>${a.street_address}${a.suburb ? ', ' + a.suburb : ''}</td><td>${a.city}</td><td>${a.province}</td><td>${a.postal_code}</td><td>${a.is_current ? 'Yes' : 'No'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No address records.</p>'}
+
+            <h2>References</h2>
+            ${p.references.length ? `<table class="data-table"><thead><tr><th>Company</th><th>Referee</th><th>Position</th><th>Relationship</th><th>Rating</th><th>Verified</th></tr></thead><tbody>
+                ${p.references.map(r => `<tr><td>${r.company_name}</td><td>${r.referee_name}</td><td>${r.referee_position}</td><td>${r.relationship_to_candidate}</td><td>${r.rating || 'N/A'}</td><td>${r.is_verified ? 'Yes' : 'No'}</td></tr>`).join('')}
+            </tbody></table>` : '<p class="empty-state">No references.</p>'}
+        `;
+    } catch (err) { container.innerHTML = '<p class="error">Failed to load profile.</p>'; }
+}
+loadProfile();
+</script>
+{% endblock %}

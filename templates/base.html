@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SA Verify{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a href="/">SA Verify</a>
+        </div>
+        <div class="nav-links" id="navLinks">
+            <!-- Populated by JS based on auth state -->
+        </div>
+        <div class="nav-user" id="navUser" style="display:none;">
+            <span id="userName"></span>
+            <button class="btn btn-sm btn-outline" onclick="logout()">Log Out</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="alertContainer"></div>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>SA Verify - National Verification System Prototype</p>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
