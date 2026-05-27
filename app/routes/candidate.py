@@ -42,7 +42,10 @@ from app.services.audit_service import log_action
 
 router = APIRouter(prefix="/api/candidate", tags=["candidate"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "uploads")
+UPLOAD_DIR = os.environ.get(
+    "UPLOAD_DIR",
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "uploads"),
+)
 
 
 def _get_citizen(current_user: User) -> Citizen:

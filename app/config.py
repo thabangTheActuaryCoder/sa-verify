@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_NAME: str = "SA Verify"
-    DATABASE_URL: str = "sqlite:///./sa_verify.db"
+    DATABASE_URL: str = "sqlite:////tmp/sa_verify.db"
     SECRET_KEY: str = "sa-verify-prototype-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
